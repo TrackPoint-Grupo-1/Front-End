@@ -1,0 +1,25 @@
+{
+  "name": "front-end-aplicacao",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon --exec node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ngrok/ngrok": "^1.4.1",
+    "axios": "^1.7.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "http": "^0.0.1-security",
+    "jspdf": "^2.5.2",
+    "mysql2": "^3.9.4",
+    "nodemon": "^2.0.7",
+    "path": "^0.12.7"
+  }
+}
