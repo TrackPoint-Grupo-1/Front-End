@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackPoint</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <link rel="stylesheet" href="styles/login.css">
+    <script src="./components/filled-button.js"></script>
+    <script src="./components/outlined-input.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card-login">
+          <h1>Login</h1>
+            <div class="container-input">
+                <label for="input-email">Email</label>
+                <filled-input type="email"  placeholder="Digite seu email"></filled-input>
+            </div>
+            <div class="container-input">
+                <label for="input-senha">Senha</label>
+                <filled-input type="password" class="input-senha" placeholder="Digite sua senha"></filled-input>
+            </div>
+            <filled-button>Entrar</filled-button>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+    function goToLogin() {
+        window.location = './login.html'
+    }
+</script>

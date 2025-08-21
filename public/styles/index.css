@@ -1,0 +1,48 @@
+.container{
+    width: 100vw;
+    height: 100vh;
+    background-image: url('../assets/background.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+.card-login{
+    width: 30vw;
+    height: 30vh;
+    position: relative;
+    top: 30%;
+    left: 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    h1{
+        color: var(--primary);
+        font-family: var(--font-family-primary);
+        font-size: 40px;
+        font-weight: 750;
+    }
+
+    p{
+        width: 50%;
+        text-align: center;
+        font-family: 'Open Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 29px;
+        text-align: center;
+        color: #000000;
+    }
+
+    filled-button{
+        width: 60%;
+    }
+}
+
+.long-button button{
+    width: 100px;
+}

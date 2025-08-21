@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Front-end Aplicação</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackPoint</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <link rel="stylesheet" href="styles/index.css">
+    <script src="./components/filled-button.js"></script>
 </head>
 <body>
-  <h1>Usuários</h1>
-  <ul id="lista-usuarios"></ul>
-  <script src="script.js"></script>
+    <div class="container">
+        <div class="card-login">
+          <h1>TrackPoint</h1>
+          <p>Controle simples, produtividade máxima</p>
+          <filled-button class="long-button" onclick="goToLogin()">Entrar</filled-button>
+        </div>
+    </div>
 </body>
 </html>
+
+<script>
+    function goToLogin() {
+        window.location = './login.html'
+    }
+</script>
