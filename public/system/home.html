@@ -4,11 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Home - Trackpoint</title>
   <link rel="stylesheet" href="styles/shared.css">
-  <script src="../components/navbar.js"></script>
-  <link rel="stylesheet" href="../styles/shared.css">
-  <link rel="stylesheet" href="../styles/home.css">
+  <script src="/components/navbar.js"></script>
+  <script src="/components/alert.js"></script>
+  <link rel="stylesheet" href="/styles/shared.css">
+  <link rel="stylesheet" href="/styles/home.css">
 </head>
 
 <body>
@@ -18,8 +19,17 @@
 
     <!-- Conteúdo da sidebar -->
     <div slot="sidebar">
-      <div slot="sidebar-container">
-
+      <div class="container-sidebar">
+        <div class="container-title-sidebar">
+          <span>
+            <img src="/assets/icons8-lembrete-de-compromissos.png" width="40" height="40" alt="">
+            <h2 class="notifications">Notificações</h2>
+          </span>
+            <span id="close-btn-sidebar">X</span>
+        </div>
+        <my-alert type="danger" date="19/05/2025"></my-alert>
+        <my-alert type="alert" corrections="8" date="31/05/2025"></my-alert>
+        <my-alert type="normalized"></my-alert>
       </div>
 
     </div>
