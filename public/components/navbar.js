@@ -14,9 +14,10 @@ class MyNavbar extends HTMLElement {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 10px 20px;
+          padding: 15px 55px;
           background-color: #008781;
           color: white;
+
         }
 
         #sidebar-btn {
@@ -32,13 +33,13 @@ class MyNavbar extends HTMLElement {
           top: 0;
           right: -100%;
           width: 40%;
-          height: 93.5%;
+          height: 100vh;
           background: white;
           box-shadow: -2px 0 8px rgba(0,0,0,0.3);
           transition: right 0.3s ease;
           overflow-y: auto;
           z-index: 1001;
-          padding: 20px;
+          padding: 30px;
           border-top-left-radius: 20px;
           border-bottom-left-radius: 20px;
         }

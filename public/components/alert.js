@@ -34,16 +34,23 @@ class MyAlert extends HTMLElement {
           margin-bottom: 10px;
         }
         .danger {
-          background: #fdd;
+          padding: 15px;
           border-left: 4px solid #f00;
+          border-radius: 8px;
+          box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.11);
         }
         .alert {
-          background: #ffd;
+          padding: 10px;
           border-left: 4px solid #ff0;
+           border-radius: 8px;
+           box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.11);
         }
         .normalized {
-          background: #dfd;
+          padding: 10px;
           border-left: 4px solid #0f0;
+          border-radius: 8px;
+          box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.11);
+
         }
         h1 {
           margin: 0 0 5px 0;

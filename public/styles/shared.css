@@ -7,6 +7,9 @@
 
     --font-family-primary: 'Poppins';
     --font-family-secondary: 'Open Sans';
+
+    --background: #E6E6E6;
+    --white: #FFFFFF;
 }
 
 * {
