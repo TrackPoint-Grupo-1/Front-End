@@ -33,10 +33,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.log(usuario);
             alert(`Boas Vindas, ${usuario.nome}!`);
+            localStorage.setItem("usuarioLogado", JSON.stringify(usuario));
+
 
             // Redireciona conforme cargo
             if (usuario.cargo === "GERENTE") {
-                window.location.href = "./system/dashboard.html";
+                window.location.href = "./system/baterponto.html";
             } else {
                 window.location.href = "./system/baterponto.html";
             }
