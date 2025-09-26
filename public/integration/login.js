@@ -38,9 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Redireciona conforme cargo
             if (usuario.cargo === "GERENTE") {
-                window.location.href = "./system/baterponto.html";
+                window.location.href = "./system/home.html";
             } else {
-                window.location.href = "./system/baterponto.html";
+                window.location.href = "./system/home.html";
             }
 
         } catch (error) {

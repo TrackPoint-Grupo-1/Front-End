@@ -1,146 +1,261 @@
+/* === BASE === */
 body {
-    overflow: hidden;
-    background: var(--background);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--background);
+  min-height: 100vh;
 }
 
 .container-home {
-    display: flex;
-    width: 100vw;
-    height: 90vh;
-    justify-content: center;
-    background: var(--background);
+  display: flex;
+  justify-content: center;
+  background: var(--background);
+  margin-bottom: 20px;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
 .container-home-inside {
-    width: 80vw;
-    height: 70vh;
-    display: flex;
-    gap: 25px;
-    flex-direction: column;
-    margin-top: 1.1%;
-
-    h1 {
-        font-size: 1.3rem;
-        font-weight: 500;
-        color: #6D6D6D;
-        margin-top: 10px;
-    }
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 90%;
+  max-width: 1200px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
+
+h1 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #6D6D6D;
+}
+
+/* === CARD ROW (4 cards lado a lado) === */
 .card-row {
-    width: 100%;
-    height: fit-content;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    flex-wrap: 2;
-    align-items: center;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  flex: 0 0 auto;
 }
 
 .card {
-    width: 19%;
-    height: 33vh;
-    background-color: var(--white);
-    border-radius: 15px;
-    box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.1);
-    transition: 0.3s ease-in;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-
-    &:hover{
-       transform: translateY(-3px);
-       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.089);
-    }
-
-    
-    p{
-        font-size: 1.1rem;
-    }
+  flex: 1 1 calc(25% - 20px); /* 4 cards por linha com gap */
+  min-width: 200px;
+  background-color: var(--white);
+  border-radius: 15px;
+  box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.1);
+  transition: 0.3s ease-in;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  cursor: pointer;
 }
 
-.icon-card{
-    img{
-        width: 90px;
-        height: auto;
-    }
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.089);
 }
 
-.extended-cards-row{
+.card p {
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.icon-card img {
+  width: 80px;
+  height: auto;
+}
+
+/* === EXTENDED CARDS ROW (2 cards lado a lado) === */
+.extended-cards-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  min-height: 0;
+}
+
+
+.card, .extended-card {
+  width: 100%;
+  height: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.extended-card {
+  background-color: var(--white);
+  border-radius: 15px;
+  box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 300px; /* altura mínima garantida */
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+
+
+.extended-card p {
+  font-weight: 500;
+  font-size: 1.16rem;
+  text-align: center;
+}
+
+/* === BANCO DE HORAS === */
+.projetos-ativos {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  margin-top: 20px;
+  max-height: 100%;
+}
+
+.row-horas {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.card-row-horas {
+  flex: 1 1 45%;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  color: #6D6D6D;
+}
+
+.card-row-horas p {
+  font-weight: 500;
+}
+
+#horas {
+  font-size: 1.9rem;
+  font-weight: 800;
+}
+
+.row-projeto {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 5px 10px;
+}
+
+#user-name{
+    margin-top: 20px;
+}
+
+/* === MEDIA QUERIES === */
+
+/* Telas até 768px (celulares) */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.1rem;
+  }
+
+  .card {
     width: 100%;
-    height: 35vh;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    max-width: 400px;
+  }
+
+  @media (max-width: 768px) {
+  .card-row {
+    grid-template-columns: 1fr;
+  }
+
+   .extended-cards-row {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .extended-card {
+    height: auto;
+    min-height: 300px;
+  }
+
+  .projetos-ativos {
+    max-height: 200px;
+  }
 }
 
-.extended-card{
-    width: 47%;
-    height: inherit;
-    background-color: var(--white);
-    border-radius: 15px;
-    box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
 
-    p{
-        font-weight: 500;
-        font-size: 1.16rem;
-    }
-}
-
-.projetos-ativos{
-    width: 90%;
-    height: 70%;
-    overflow-y: scroll;
-    display: flex;
+  .row-horas {
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin-top: 20px;
-}
+  }
 
-.row-projeto{
-    width: 90%;
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
+  .card-row-horas {
+    width: 100%;
+  }
 
-.row-horas{
-    display: flex;
-    flex-direction: row;
-    width: 90%;
-    height: 70%;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.card-row-horas{
-    margin-top: 20px;
-    display: flex;
+  .row-projeto {
     flex-direction: column;
-    width: 49%;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 1.2rem;
-    color: #6D6D6D;
+    align-items: flex-start;
+    gap: 5px;
+  }
 
-    p{
-        font-weight: 500;
-    }
+  .projetos-ativos {
+    max-height: 200px;
+  }
+
+  #horas {
+    font-size: 1.6rem;
+  }
 }
 
-#horas{
-    font-size: 1.9rem;
-    font-weight: 800;
+/* Telas muito pequenas (até 430px) */
+@media (max-width: 430px) {
+  h1 {
+    font-size: 1rem;
+  }
+
+  .card p {
+    font-size: 1rem;
+  }
+
+  .icon-card img {
+    width: 60px;
+  }
+
+  .extended-card p {
+    font-size: 1rem;
+  }
+
+  #horas {
+    font-size: 1.4rem;
+  }
 }
+
+@media (max-width: 1024px) {
+  .card-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .extended-cards-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .card-row {
+    grid-template-columns: 1fr;
+  }
+
+  .extended-cards-row {
+    grid-template-columns: 1fr;
+  }
+}
+
