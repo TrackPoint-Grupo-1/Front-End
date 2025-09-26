@@ -1,57 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home - Trackpoint</title>
-  <link rel="stylesheet" href="styles/shared.css">
-  <script src="/components/navbar.js"></script>
-  <script src="/components/filled-button.js"></script>
-  <script src="/components/alert.js"></script>
-  <link rel="stylesheet" href="/styles/shared.css">
-  <link rel="stylesheet" href="/styles/baterponto.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Trackpoint</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <script src="/components/navbar.js"></script>
+    <script src="/components/filled-button.js"></script>
+    <script src="/components/alert.js"></script>
+    <link rel="stylesheet" href="/styles/shared.css">
+    <link rel="stylesheet" href="/styles/baterponto.css">
+    <link rel="shortcut icon" href="/assets/favicon.png" type="image/x-icon">
 </head>
 
 <body>
     <my-navbar>
-    <!-- Conteúdo do lado esquerdo da navbar -->
-    <span slot="left" class="title-navbar">TrackPoint</span>
+        <!-- Conteúdo do lado esquerdo da navbar -->
+        <span slot="left" class="title-navbar">TrackPoint</span>
 
-    <!-- Conteúdo da sidebar -->
-    <div slot="sidebar">
-      <div class="container-sidebar">
-        <div class="container-title-sidebar">
-          <span>
-            <img src="/assets/icons8-lembrete-de-compromissos.png" width="40" height="40" alt="">
-            <h2 class="notifications">Notificações</h2>
-          </span>
-          <span id="close-btn-sidebar">X</span>
+        <!-- Conteúdo da sidebar -->
+        <div slot="sidebar">
+            <div class="container-sidebar">
+                <div class="container-title-sidebar">
+                    <span>
+                        <img src="/assets/icons8-lembrete-de-compromissos.png" width="40" height="40" alt="">
+                        <h2 class="notifications">Notificações</h2>
+                    </span>
+                    <span id="close-btn-sidebar">X</span>
+                </div>
+                <my-alert type="danger" date="19/05/2025"></my-alert>
+                <my-alert type="alert" corrections="8" date="31/05/2025"></my-alert>
+                <my-alert type="normalized"></my-alert>
+            </div>
+
         </div>
-        <my-alert type="danger" date="19/05/2025"></my-alert>
-        <my-alert type="alert" corrections="8" date="31/05/2025"></my-alert>
-        <my-alert type="normalized"></my-alert>
-      </div>
+    </my-navbar>
 
-    </div>
-  </my-navbar>
-
-  <div class="container-baterponto">
-    <div class="left-side">
-        <div class="hours">
-            <p class="data">Segunda-feira, 19 de setembro de 2025</p>
-            <h1>12:45</h1>
+    <div class="container-baterponto">
+        <div class="left-side">
+            <div class="hours">
+                <p class="data">Segunda-feira, 19 de setembro de 2025</p>
+                <h1>12:45</h1>
+            </div>
+            <div class="card-user">
+                <img src="/assets/user.jpg" alt="">
+                <h2>Pedro Silva</h2>
+                <span>Seu break foi de 00:40:20</span>
+            </div>
+            <filled-button class="baterponto">Bater ponto</filled-button>
         </div>
-        <div class="card-user">
-            <img src="/assets/user.jpg" alt="">
-            <h2>Pedro Silva</h2>
-            <span>Seu break foi de 00:40:20</span>
-        </div>
-        <filled-button class="baterponto">Bater ponto</filled-button>
-    </div>
-    <div class="right-side">
+        <div class="right-side">
+            <p>Minha agenda</p>
+            <div class="card-right">
+                <div class="row-card">
+                    <div class="header-row">
+                        <img src="/assets/clock.png" alt="">
+                        <p>Entrada</p>
+                    </div>
 
+                    <span>08:00</span>
+                </div>
+                <div class="row-card">
+                    <div class="header-row">
+                        <img src="/assets/clock.png" alt="">
+                        <p>Início de Intervalo</p>
+                    </div>
+
+                    <span>08:00</span>
+                </div>
+                <div class="row-card">
+                    <div class="header-row">
+                        <img src="/assets/clock.png" alt="">
+                        <p>Volta do Intervalo</p>
+                    </div>
+
+                    <span class="ponto-nao_batido">
+                        <span >Planejado</span>
+                        <span>13:05</span>
+                    </span>
+                </div>
+                <div class="row-card">
+                    <div class="header-row">
+                        <img src="/assets/clock.png" alt="">
+                        <p>Saída</p>
+                    </div>
+
+                    <span>08:00</span>
+                </div>
+            </div>
+
+        </div>
     </div>
-  </div>
-    
+
 </body>
+
 </html>
