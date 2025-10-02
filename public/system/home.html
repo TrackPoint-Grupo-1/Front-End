@@ -8,6 +8,7 @@
   <script src="/components/navbar.js"></script>
   <script src="/components/alert.js"></script>
   <script type="module" src="../integration/home/ultimosProjetosAtivos.js"></script>
+  <script type="module" src="../integration/home/meuBancoDeHoras.js"></script>
   <link rel="stylesheet" href="/styles/shared.css">
   <link rel="stylesheet" href="/styles/home.css">
   <link rel="shortcut icon" href="/assets/favicon.png" type="image/x-icon">
@@ -38,7 +39,7 @@
 
   <div class="container-home">
     <div class="container-home-inside">
-      <h1 id="user-name">Bom dia, <span id="user">Simone!</span></h1>
+      <h1 id="user-name">Tenha um ótimo dia, <span id="user">Simone</span>!</h1>
 
       <div class="card-row">
 
@@ -74,19 +75,19 @@
       <div class="extended-cards-row">
 
         <div class="extended-card">
-            <p>Meu Banco de Horas</p>
-            <div class="row-horas">
-              <div class="card-row-horas">
-                <p>Total de Horas</p>
-                <span id="horas">24:32</span>
-                <span>de 176:00</span>
-              </div>
-              <div class="card-row-horas">
-                <p>Horas extras</p>
-                <span id="horas">24:32</span>
-                <span>Limite de 176:00</span>
-              </div>
+          <p>Meu Banco de Horas</p>
+          <div class="row-horas">
+            <div class="card-row-horas">
+              <p>Total de Horas</p>
+              <span id="horasTotal">24:32</span>
+              <span id="limiteHorasTrabalhadas">de 00:00</span>
             </div>
+            <div class="card-row-horas">
+              <p>Horas extras</p>
+              <span id="horasExtras">00:00</span>
+              <span id="limiteHorasExtras">Limite de 00:00</span>
+            </div>
+          </div>
         </div>
 
         <div class="extended-card">
@@ -140,7 +141,7 @@
 </html>
 
 <script>
-  function goToBaterPonto(){
+  function goToBaterPonto() {
     window.location = './baterponto.html'
   }
 </script>
