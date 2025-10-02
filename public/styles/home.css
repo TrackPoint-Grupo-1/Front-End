@@ -136,6 +136,7 @@ h1 {
   gap: 10px;
   font-size: 1.2rem;
   color: #6D6D6D;
+  justify-content: center;
 }
 
 .card-row-horas p {
