@@ -1,0 +1,202 @@
+body {
+    background: var(--background);
+}
+
+.container-solicitarajuste {
+    width: 100%;
+    min-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container-form {
+    width: 90%;
+    max-width: 45vw;
+    min-height: 40vh;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    color: var(--primary);
+    font-family: var(--font-family-primary);
+    font-size: 25px;
+    font-weight: 750;
+    margin-bottom: 5%;
+    margin-top: 3%;
+}
+
+/* estilo para alinhar os dois primeiros campos lado a lado */
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+form {
+    display: flex;
+    width: 90%;
+    max-width: 40vw;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    flex: 1;
+    /* Permite que os campos do .form-row se dividam igualmente */
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: 400;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Seletor que pega todos os selects que devem ter o placeholder cinza */
+select.placeholder {
+    color: #6D6D6D;
+}
+
+/* Seletor que muda a cor para preto quando algo válido for selecionado */
+select.placeholder:valid {
+    color: #000000;
+}
+
+input[type="date"] {
+    color: #6D6D6D; 
+}
+
+input[type="date"]:valid {
+    color: #000000;
+}
+
+select {
+    /* flecha SVG para simular o ícone do dropdown */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="%23333333" d="M8 12l-6-6h12z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+}
+
+.my-button {
+    padding: 10px 20px;
+    font-size: 12px;
+    border: none;
+    background: #008781;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    color: white;
+    font-weight: bold;
+    font-family: "Poppins";
+    width: 100%;
+}
+
+.my-button:hover {
+    background-color: rgb(0, 101, 95);
+}
+
+.footer-message {
+    text-align: center;
+    font-size: 0.9em;
+    color: #6D6D6D;
+    margin-top: 5px;
+}
+
+
+.form-row.three-columns {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+.form-group {
+    flex: 1;
+}
+
+
+/*
+    =====================================================================
+    MEDIA QUERIES - RESPONSIVIDADE
+    =====================================================================
+*/
+
+@media (max-width: 1024px) {
+    .container-form {
+        max-width: 600px; 
+    }
+
+    form {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .container-form {
+        max-width: 80%; 
+        padding: 25px;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-row, 
+    .form-row.three-columns {
+        flex-direction: column;
+        gap: 15px; 
+    }
+
+    .container-form {
+        max-width: 95%; 
+        padding: 20px;
+    }
+
+    form {
+        max-width: 100%;
+    }
+    
+    h1 {
+        font-size: 22px; 
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 430px) {
+    .container-form {
+        padding: 15px; 
+    }
+    
+    h1 {
+        font-size: 20px;
+    }
+
+    .my-button {
+        font-size: 11px; 
+    }
+}
