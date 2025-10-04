@@ -44,3 +44,28 @@ export async function patch(endpoint, body = null, headers = {}) {
 
   return response.json();
 }
+
+// POST genérico
+export async function post(endpoint, body = {}, headers = {}) {
+  const url = `${BASE_URL}${endpoint}`;
+  console.log("POST URL:", url, body);
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    let errorText;
+    try {
+      const errorData = await response.json();
+      errorText = errorData.message || JSON.stringify(errorData);
+    } catch {
+      errorText = await response.text();
+    }
+    throw new Error(`Erro no POST [${response.status}]: ${errorText}`);
+  }
+
+  return response.json();
+}
