@@ -1,16 +1,26 @@
 // Base URL do backend
 export const BASE_URL = "http://localhost:8080";
 
-// Função genérica para fazer GET
 export async function get(endpoint, headers = {}) {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const url = `${BASE_URL}${endpoint}`;
+  console.log("GET URL:", url); // 👈 loga a URL completa
+
+  const response = await fetch(url, {
     method: "GET",
     headers: headers
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Erro desconhecido no GET");
+    let errorText;
+    try {
+      // tenta interpretar como JSON
+      const errorData = await response.json();
+      errorText = errorData.message || JSON.stringify(errorData);
+    } catch {
+      // se não for JSON, pega texto mesmo (HTML do erro 404 por ex.)
+      errorText = await response.text();
+    }
+    throw new Error(`Erro no GET [${response.status}]: ${errorText}`);
   }
 
   return response.json();

@@ -21,6 +21,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const endpoint = `/pontos/${usuarioLogado.id}?data=${encodeURIComponent(dataHoje)}`;
         const pontos = await get(endpoint);
 
+        // 👇 LOGA A URL FINAL
+        console.log("Chamando endpoint:", endpoint);
+
+
         if (!pontos.length) {
             console.log("Nenhum ponto encontrado para hoje.");
         }
