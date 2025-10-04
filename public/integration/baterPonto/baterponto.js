@@ -2,19 +2,38 @@ import { get, post } from "../connection.js"; // ajuste o caminho relativo se ne
 
 const TIPOS_PONTO = ["ENTRADA", "ALMOCO", "VOLTA_ALMOCO", "SAIDA"];
 
-// pega o horário atual no formato ISO (yyyy-MM-ddTHH:mm:ss)
+// Pega o horário atual no formato ISO (yyyy-MM-ddTHH:mm:ss)
 function horarioAtualISO() {
   const agora = new Date();
   return agora.toISOString().split(".")[0];
 }
 
-// função para bater ponto
+// Função para obter localização atual do usuário
+async function obterLocalizacao() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve("Localização não disponível");
+    } else {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          // arredonda para 4 casas decimais
+          const lat = pos.coords.latitude.toFixed(4);
+          const lon = pos.coords.longitude.toFixed(4);
+          resolve(`Lat: ${lat}, Lon: ${lon}`);
+        },
+        err => resolve("Localização não disponível") // se usuário negar
+      );
+    }
+  });
+}
+
+// Função principal para bater ponto
 async function baterPonto() {
   try {
     const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
     if (!usuario || !usuario.id) throw new Error("Usuário não encontrado no localStorage");
 
-    // data de hoje
+    // data de hoje no formato dd/MM/yyyy
     const hoje = new Date();
     const dia = String(hoje.getDate()).padStart(2, "0");
     const mes = String(hoje.getMonth() + 1).padStart(2, "0");
@@ -26,7 +45,7 @@ async function baterPonto() {
     try {
       registros = await get(`/pontos/${usuario.id}?data=${encodeURIComponent(dataFormatada)}`);
     } catch (err) {
-      if (err.message.includes("404")) registros = []; // se não houver ponto, começa do zero
+      if (err.message.includes("404")) registros = [];
       else throw err;
     }
 
@@ -39,17 +58,20 @@ async function baterPonto() {
       return;
     }
 
+    // obtém localização
+    const localidade = await obterLocalizacao();
+
     // POST via connection.js
     await post("/pontos", {
       usuarioId: usuario.id,
       tipo: proximoTipo,
       horario: horarioAtualISO(),
-      localidade: "Escritório",
+      localidade: localidade,
       observacoes: ""
     });
 
     alert(`Ponto ${proximoTipo} registrado com sucesso!`);
-    location.reload(); // recarrega a tela
+    location.reload();
 
   } catch (err) {
     console.error(err);
@@ -58,10 +80,9 @@ async function baterPonto() {
 }
 
 // --------------------
-// Atrelando o botão
+// Event Delegation para o botão
 // --------------------
 function iniciarBaterPonto() {
-  // Event Delegation para garantir que o botão funcione mesmo se carregado depois
   document.addEventListener("click", (e) => {
     if (e.target.matches(".baterponto")) {
       baterPonto();
@@ -69,5 +90,5 @@ function iniciarBaterPonto() {
   });
 }
 
-// inicializa
+// Inicializa
 document.addEventListener("DOMContentLoaded", iniciarBaterPonto);
