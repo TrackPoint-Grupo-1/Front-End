@@ -48,12 +48,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             SAIDA: "--:--"
         };
 
-        // Preenche os horários batidos
+        // Preenche os horários batidos (com ajuste de fuso horário)
         turnoAtual.forEach(ponto => {
-            const horario = new Date(ponto.horario);
-            const horaFormatada = `${String(horario.getHours()).padStart(2, "0")}:${String(horario.getMinutes()).padStart(2, "0")}`;
-            horarios[ponto.tipo] = horaFormatada;
+            const horario = new Date(ponto.horario + "Z"); // força interpretação como UTC
+            const horaLocal = horario.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "America/Sao_Paulo"
+            });
+            horarios[ponto.tipo] = horaLocal; // ✅ usa apenas o valor ajustado
         });
+
 
         // --- Regra do Planejado ---
         let voltaAlmocoHtml = horarios.VOLTA_ALMOCO;
