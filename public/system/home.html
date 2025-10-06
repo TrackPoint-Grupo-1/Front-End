@@ -57,14 +57,14 @@
           <p>Meu Relatório</p>
         </div>
 
-        <div class="card">
+        <div class="card" onclick="goToSolicitarAjuste()">
           <div class="icon-card">
             <img src="/assets/solicitarajuste.png" alt="">
           </div>
           <p>Solicitar Ajuste</p>
         </div>
 
-        <div class="card">
+        <div class="card" onclick="goToSolicitarHoraExtra()">
           <div class="icon-card">
             <img src="/assets/horaextra.png" alt="">
           </div>
@@ -143,5 +143,13 @@
 <script>
   function goToBaterPonto() {
     window.location = './baterponto.html'
+  }
+  
+  function goToSolicitarAjuste() {
+    window.location = './solicitacaoajuste.html'
+  }
+
+  function goToSolicitarHoraExtra() {
+    window.location = './solicitacaohoras.html'
   }
 </script>
