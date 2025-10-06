@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visão Geral - TrackPoint Manager</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <link rel="shortcut icon" href="../assets/favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="components/sidebar.js"></script>
+    <script src="components/header.js"></script>
+    <script src="components/metric-card.js"></script>
+    <script src="components/chart-card.js"></script>
+    <script src="components/employee-card.js"></script>
+    <script src="components/quick-action.js"></script>
+    <script type="module" src="integration/dashboard-data.js"></script>
+    <script type="module" src="integration/navigation.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <app-sidebar></app-sidebar>
+        
+        <div class="main-content">
+            <app-header></app-header>
+            
+            <div class="content-area">
+                <!-- Métricas Principais -->
+                <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="metric-card" style="--metric-color: #0d9488;">
+                        <div class="metric-header">
+                            <div class="metric-title">Horas Trabalhadas Mensal</div>
+                            <div class="metric-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">71:32:00</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+8%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card" style="--metric-color: #059669;">
+                        <div class="metric-header">
+                            <div class="metric-title">Horas Extras sobre a Jornada Mensal (%)</div>
+                            <div class="metric-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">25,04%</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+5%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card" style="--metric-color: #ea580c;">
+                        <div class="metric-header">
+                            <div class="metric-title">% de Alocação em Treinamento - Mensal</div>
+                            <div class="metric-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">85,04%</div>
+                        <div class="metric-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-5%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Espaçamento entre seções -->
+                <div style="margin-bottom: 2rem;"></div>
+
+                <!-- Card 1: Solicitações de Horas Extras -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="card-header">
+                        <h3 class="card-title">Solicitações de Horas Extras</h3>
+                        <div class="card-actions">
+                            <div class="search-container" style="position: relative; margin-right: 0.5rem;">
+                                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem;"></i>
+                                <input type="text" placeholder="Buscar Colaborador..." style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>NOME DO COLABORADOR</th>
+                                        <th>DATA DA HORA EXTRA</th>
+                                        <th>DE - ATÉ</th>
+                                        <th>JUSTIFICATIVA</th>
+                                        <th>OBSERVAÇÕES</th>
+                                        <th>AÇÕES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div style="font-weight: 500;">Nome Colaborador</div>
+                                                <div style="font-size: 0.75rem; color: #64748b;">Nome@gmail.com</div>
+                                            </div>
+                                        </td>
+                                        <td>12/11/2025</td>
+                                        <td>01:00 - 02:00</td>
+                                        <td>Trabalho em Produção</td>
+                                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-success btn-sm">APROVAR</button>
+                                                <button class="btn btn-secondary btn-sm">RETORNAR</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div style="font-weight: 500;">Nome Colaborador</div>
+                                                <div style="font-size: 0.75rem; color: #64748b;">Nome@gmail.com</div>
+                                            </div>
+                                        </td>
+                                        <td>12/11/2025</td>
+                                        <td>01:00 - 02:00</td>
+                                        <td>Trabalho em Produção</td>
+                                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-success btn-sm">APROVAR</button>
+                                                <button class="btn btn-secondary btn-sm">RETORNAR</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div style="font-weight: 500;">Nome Colaborador</div>
+                                                <div style="font-size: 0.75rem; color: #64748b;">Nome@gmail.com</div>
+                                            </div>
+                                        </td>
+                                        <td>12/11/2025</td>
+                                        <td>01:00 - 02:00</td>
+                                        <td>Trabalho em Produção</td>
+                                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-success btn-sm">APROVAR</button>
+                                                <button class="btn btn-secondary btn-sm">RETORNAR</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Solicitações de Correção Manual -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Solicitações de Correção Manual</h3>
+                        <div class="card-actions">
+                            <div class="search-container" style="position: relative; margin-right: 0.5rem;">
+                                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem;"></i>
+                                <input type="text" placeholder="Buscar Colaborador..." style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>NOME DO COLABORADOR</th>
+                                        <th>DATA DA HORA EXTRA</th>
+                                        <th>DE - ATÉ</th>
+                                        <th>JUSTIFICATIVA</th>
+                                        <th>OBSERVAÇÕES</th>
+                                        <th>AÇÕES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div style="font-weight: 500;">Nome Colaborador</div>
+                                                <div style="font-size: 0.75rem; color: #64748b;">Nome@gmail.com</div>
+                                            </div>
+                                        </td>
+                                        <td>12/11/2025</td>
+                                        <td>12:00</td>
+                                        <td>Ponto do Almoço</td>
+                                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-success btn-sm">APROVAR</button>
+                                                <button class="btn btn-secondary btn-sm">RETORNAR</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div style="font-weight: 500;">Nome Colaborador</div>
+                                                <div style="font-size: 0.75rem; color: #64748b;">Nome@gmail.com</div>
+                                            </div>
+                                        </td>
+                                        <td>12/11/2025</td>
+                                        <td>17:00</td>
+                                        <td>Ponto de Saída</td>
+                                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-success btn-sm">APROVAR</button>
+                                                <button class="btn btn-secondary btn-sm">RETORNAR</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <div style="font-weight: 500;">Nome Colaborador</div>
+                                                <div style="font-size: 0.75rem; color: #64748b;">Nome@gmail.com</div>
+                                            </div>
+                                        </td>
+                                        <td>12/11/2025</td>
+                                        <td>18:30</td>
+                                        <td>Ponto de Saída</td>
+                                        <td>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</td>
+                                        <td>
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <button class="btn btn-success btn-sm">APROVAR</button>
+                                                <button class="btn btn-secondary btn-sm">RETORNAR</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurar página ativa
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.querySelector('app-sidebar');
+            const header = document.querySelector('app-header');
+            
+            if (sidebar) {
+                sidebar.setActivePage('visao-geral');
+            }
+            
+            if (header) {
+                header.updateBreadcrumb('Visão Geral');
+            }
+        });
+    </script>
+</body>
+</html>

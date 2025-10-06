@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horas em Projetos - TrackPoint Manager</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <link rel="shortcut icon" href="../assets/favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="components/sidebar.js"></script>
+    <script src="components/header.js"></script>
+    <script src="components/metric-card.js"></script>
+    <script src="components/chart-card.js"></script>
+    <script type="module" src="integration/dashboard-data.js"></script>
+    <script type="module" src="integration/navigation.js"></script>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <app-sidebar></app-sidebar>
+        
+        <div class="main-content">
+            <app-header></app-header>
+            
+            <div class="content-area">
+                <!-- Métricas Principais -->
+                <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="metric-card" style="--metric-color: #0d9488;">
+                        <div class="metric-header">
+                            <div class="metric-title">Total de Horas em Projetos - Mensal</div>
+                            <div class="metric-icon">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">800:80:00</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card" style="--metric-color: #ea580c;">
+                        <div class="metric-header">
+                            <div class="metric-title">% de Alocação em Treinamento - Mensal</div>
+                            <div class="metric-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">85,04%</div>
+                        <div class="metric-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-5%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card" style="--metric-color: #059669;">
+                        <div class="metric-header">
+                            <div class="metric-title">% de Alocação em Reuniões - Mensal</div>
+                            <div class="metric-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">41,02%</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Espaçamento entre seções -->
+                <div style="margin-bottom: 2rem;"></div>
+
+                <!-- Gerenciamento de Projetos -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Cadastro de Projetos</h3>
+                        </div>
+                        <div class="card-content">
+                            <form class="project-form">
+                                <div class="form-group">
+                                    <label class="form-label">Nome do Projeto</label>
+                                    <input type="text" class="form-input" placeholder="Digite o nome do projeto">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Nome do Gerente Responsável</label>
+                                    <select class="form-select">
+                                        <option>Selecione o gerente responsável pelo projeto</option>
+                                        <option>Ester Jackson</option>
+                                        <option>James Martins</option>
+                                        <option>Mathew Perry</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Horas necessárias</label>
+                                    <input type="text" class="form-input" placeholder="HH:MM:SS">
+                                </div>
+                                
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="sensitive-project">
+                                    <label for="sensitive-project">O projeto é sensível?</label>
+                                </div>
+                                <p class="text-sm text-gray-600" style="margin-top: -0.5rem; margin-bottom: 1.5rem;">
+                                    Projetos sensíveis têm acesso restrito e maior controle de segurança.
+                                </p>
+                                
+                                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                                    <i class="fas fa-plus"></i>
+                                    Cadastrar Projeto
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Projetos Ativos</h3>
+                            <div class="card-actions">
+                                <div class="search-container" style="position: relative; margin-right: 0.5rem;">
+                                    <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem;"></i>
+                                    <input type="text" placeholder="Buscar Projeto..." style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                </div>
+                                <button class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>NOME DO PROJETO</th>
+                                            <th>GERENTE RESPONSÁVEL</th>
+                                            <th>HORAS PLAN X D</th>
+                                            <th>SENSÍVEL</th>
+                                            <th>ATIVO</th>
+                                            <th>AÇÕES</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="font-weight: 500;">Nome Projeto X</td>
+                                            <td>Ester Jackson</td>
+                                            <td>400:00:00</td>
+                                            <td>
+                                                <span class="status-badge success">SIM</span>
+                                            </td>
+                                            <td>
+                                                <input type="checkbox" checked style="accent-color: #0d9488;">
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: 500;">Nome Projeto Y</td>
+                                            <td>Ester Jackson</td>
+                                            <td>120:00:00</td>
+                                            <td>
+                                                <span class="status-badge info">NÃO</span>
+                                            </td>
+                                            <td>
+                                                <input type="checkbox" checked style="accent-color: #0d9488;">
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-weight: 500;">Nome Projeto Z</td>
+                                            <td>Ester Jackson</td>
+                                            <td>15:00:00</td>
+                                            <td>
+                                                <span class="status-badge info">NÃO</span>
+                                            </td>
+                                            <td>
+                                                <input type="checkbox" checked style="accent-color: #0d9488;">
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Espaçamento entre seções -->
+                <div style="margin-bottom: 2rem;"></div>
+
+                <!-- Gráficos Mensais -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Horas em Treinamento - Mensal</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                                <button class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>Gráfico de Barras</p>
+                                    <span class="text-sm text-gray-500">Eixo Y: 0h a 90h, Eixo X: Jan a Set</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-4">
+                                <strong>Legenda:</strong> O treinamento da equipe é fundamental para o sucesso de uma empresa, pois melhora a produtividade, a inovação e a adaptação às mudanças.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Horas em Reunião - Mensal</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-filter"></i> Filtrar
+                                </button>
+                                <button class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>Gráfico de Barras</p>
+                                    <span class="text-sm text-gray-500">Eixo Y: 0h a 70h, Eixo X: Jan a Set</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-4">
+                                <strong>Legenda:</strong> Ranking de colaboradores que mais fizeram horas extras no mês, essas pessoas podem estar sofrendo sobrecarga.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurar página ativa
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.querySelector('app-sidebar');
+            const header = document.querySelector('app-header');
+            
+            if (sidebar) {
+                sidebar.setActivePage('horas-projeto');
+            }
+            
+            if (header) {
+                header.updateBreadcrumb('Horas em Projetos');
+            }
+        });
+
+        // Formulário de cadastro de projeto
+        const projectForm = document.querySelector('.project-form');
+        if (projectForm) {
+            projectForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Projeto cadastrado com sucesso!');
+                projectForm.reset();
+            });
+        }
+    </script>
+</body>
+</html>

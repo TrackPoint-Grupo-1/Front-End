@@ -32,6 +32,19 @@ app.get('/system/home.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/system/home.html'));
 });
 
+// Serve as páginas do dashboard do gestor
+app.get('/manager/visao-geral', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '/manager/visao-geral.html'));
+});
+
+app.get('/manager/horas-extras', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '/manager/horas-extras.html'));
+});
+
+app.get('/manager/horas-projeto', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '/manager/horas-projeto.html'));
+});
+
 // Rota para login
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;

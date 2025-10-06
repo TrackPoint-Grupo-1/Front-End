@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Redireciona conforme cargo
             if (usuario.cargo === "GERENTE") {
-                window.location.href = "./system/home.html";
+                window.location.href = "./manager/visao-geral.html";
             } else {
                 window.location.href = "./system/home.html";
             }
