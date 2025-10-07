@@ -1,0 +1,293 @@
+/* Estilos para a página de relatórios */
+
+.container-relatorios {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Seção de busca */
+.search-section {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.date-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 200px;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #20b2aa;
+  box-shadow: 0 0 0 2px rgba(32, 178, 170, 0.2);
+}
+
+.search-btn {
+  background-color: #20b2aa;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+  background-color: #1a9b94;
+}
+
+/* Abas de relatórios */
+.report-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  border: none;
+  background-color: #e0e0e0;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  border-radius: 4px 4px 0 0;
+}
+
+.tab-btn.active {
+  background-color: #20b2aa;
+  color: white;
+}
+
+.tab-btn:not(.active):hover {
+  background-color: #d0d0d0;
+}
+
+/* Conteúdo dos relatórios */
+.report-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.report-content.hidden {
+  display: none;
+}
+
+/* Tabelas */
+.table-container {
+  position: relative;
+  padding: 20px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.report-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.report-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+  color: #555;
+}
+
+.report-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #20b2aa;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.edit-btn:hover {
+  background-color: #f0f0f0;
+}
+
+/* Botão de adicionar */
+.add-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #6c757d;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s;
+}
+
+.add-btn:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
+}
+
+.plus-icon {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Mensagem de erro */
+.error-message {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 20px;
+  color: #721c24;
+}
+
+.error-message.hidden {
+  display: none;
+}
+
+.error-content p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.error-content p:last-child {
+  margin-bottom: 0;
+}
+
+#missing-hours {
+  font-weight: bold;
+  color: #dc3545;
+}
+
+/* Mensagem quando nenhuma data é selecionada */
+.no-date-message {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 60px 20px;
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+}
+
+.no-date-message.hidden {
+  display: none;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .container-relatorios {
+    padding: 10px;
+  }
+  
+  .search-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-input {
+    width: 100%;
+  }
+  
+  .report-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    border-radius: 4px;
+    margin-bottom: 2px;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .report-table {
+    min-width: 600px;
+  }
+}
+
+/* Animações */
+.report-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para o estado de carregamento */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: #666;
+}
+
+.loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #20b2aa;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

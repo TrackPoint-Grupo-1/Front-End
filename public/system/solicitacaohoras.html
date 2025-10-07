@@ -17,6 +17,9 @@
 <body>
     <my-navbar>
         <!-- Conteúdo do lado esquerdo da navbar -->
+        <button slot="back" class="back-button" onclick="window.location.href='./home.html'" style="display: inline-flex; align-items: center; gap: 8px; background-color: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 10px 16px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
+            <span class="back-icon" style="font-size: 16px; font-weight: bold;">←</span> Voltar
+        </button>
         <span slot="left" class="title-navbar">TrackPoint</span>
 
         <!-- Conteúdo da sidebar -->
@@ -91,6 +94,7 @@
             </form>
         </div>
     </div>
+
 </body>
 
 </html>
