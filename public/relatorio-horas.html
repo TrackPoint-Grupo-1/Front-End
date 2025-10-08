@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Horas - TrackPoint</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <link rel="stylesheet" href="styles/relatorio.css">
+    <link rel="shortcut icon" href="assets/favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="components/relatorio-table.js"></script>
+    <script src="components/date-picker.js"></script>
+    <script src="components/report-type-selector.js"></script>
+    <script type="module" src="integration/relatorio-data.js"></script>
+    <script type="module" src="integration/navigation.js"></script>
+</head>
+<body>
+    <div class="relatorio-container">
+        <!-- Header -->
+        <header class="relatorio-header">
+            <div class="header-content">
+                <h1 class="logo">TrackPoint</h1>
+                <div class="header-actions">
+                    <button class="notification-btn">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="relatorio-main">
+            <!-- Date Search Section -->
+            <section class="date-search-section">
+                <div class="date-search-container">
+                    <div class="date-input-group">
+                        <label for="date-input" class="date-label">Selecionar Data:</label>
+                        <input type="date" id="date-input" class="date-input" value="2025-06-19">
+                        <button class="search-btn" id="search-btn">
+                            <i class="fas fa-search"></i>
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Report Type Selector -->
+            <section class="report-type-section">
+                <div class="report-type-container">
+                    <report-type-selector></report-type-selector>
+                </div>
+            </section>
+
+            <!-- Report Content -->
+            <section class="report-content-section">
+                <div class="report-content-container">
+                    <!-- Hours Report -->
+                    <div id="hours-report" class="report-panel active">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <h2 class="report-title">Relatório de Horas</h2>
+                                <button class="add-btn" id="add-hours-btn">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="report-body">
+                                <relatorio-table type="hours" id="hours-table"></relatorio-table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Report -->
+                    <div id="projects-report" class="report-panel">
+                        <div class="report-card">
+                            <div class="report-header">
+                                <h2 class="report-title">Relatório de Projetos</h2>
+                                <button class="add-btn" id="add-projects-btn">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="report-body">
+                                <relatorio-table type="projects" id="projects-table"></relatorio-table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="report-panel" style="display: none;">
+                        <div class="empty-state-card">
+                            <div class="empty-state-content">
+                                <i class="fas fa-calendar-alt empty-icon"></i>
+                                <h3 class="empty-title">Selecione uma data</h3>
+                                <p class="empty-description">Escolha uma data para visualizar o relatório</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error State -->
+                    <div id="error-state" class="report-panel" style="display: none;">
+                        <div class="error-banner">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="error-content">
+                                <h4>Há inconsistências no seu apontamento de projetos!</h4>
+                                <p>As horas em projetos não coincidem com as horas trabalhadas no dia. Ajuste seu apontamento.</p>
+                                <p class="error-detail">Falta apontar <strong>02:30:00</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Configurar página
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchBtn = document.getElementById('search-btn');
+            const dateInput = document.getElementById('date-input');
+            const reportTypeSelector = document.querySelector('report-type-selector');
+            
+            // Evento de busca
+            searchBtn.addEventListener('click', () => {
+                const selectedDate = dateInput.value;
+                if (selectedDate) {
+                    loadReport(selectedDate);
+                } else {
+                    showEmptyState();
+                }
+            });
+
+            // Evento de mudança de tipo de relatório
+            reportTypeSelector.addEventListener('type-change', (event) => {
+                const reportType = event.detail.type;
+                switchReportType(reportType);
+            });
+
+            // Carregar relatório inicial
+            loadReport('2025-06-19');
+        });
+
+        function loadReport(date) {
+            // Simular carregamento de dados
+            console.log('Carregando relatório para:', date);
+            
+            // Mostrar loading se necessário
+            // Por enquanto, mostrar dados de exemplo
+            showReportData();
+        }
+
+        function showEmptyState() {
+            hideAllPanels();
+            document.getElementById('empty-state').style.display = 'block';
+        }
+
+        function showReportData() {
+            hideAllPanels();
+            const reportType = document.querySelector('report-type-selector').getActiveType();
+            
+            if (reportType === 'hours') {
+                document.getElementById('hours-report').style.display = 'block';
+            } else {
+                document.getElementById('projects-report').style.display = 'block';
+            }
+        }
+
+        function switchReportType(type) {
+            hideAllPanels();
+            
+            if (type === 'hours') {
+                document.getElementById('hours-report').style.display = 'block';
+            } else if (type === 'projects') {
+                document.getElementById('projects-report').style.display = 'block';
+            }
+        }
+
+        function hideAllPanels() {
+            const panels = document.querySelectorAll('.report-panel');
+            panels.forEach(panel => {
+                panel.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>

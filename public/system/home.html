@@ -17,6 +17,9 @@
 <body>
   <my-navbar>
     <!-- Conteúdo do lado esquerdo da navbar -->
+    <button slot="hamburger" class="hamburger-btn" onclick="toggleDashboardSidebar()" id="hamburger-menu">
+      ☰
+    </button>
     <span slot="left" class="title-navbar">TrackPoint</span>
 
     <!-- Conteúdo da sidebar -->
@@ -33,9 +36,56 @@
         <my-alert type="alert" corrections="8" date="31/05/2025"></my-alert>
         <my-alert type="normalized"></my-alert>
       </div>
-
     </div>
   </my-navbar>
+
+  <!-- Sidebar responsiva para dashboard -->
+  <div id="dashboard-sidebar" class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <h2>Menu</h2>
+      <button id="close-dashboard-sidebar" class="close-btn">×</button>
+    </div>
+    <div class="sidebar-content">
+      <div class="sidebar-section">
+        <h3>Navegação</h3>
+        <div class="sidebar-menu">
+          <a href="#" class="sidebar-item" onclick="goToBaterPonto()">
+            <img src="/assets/baterponto.png" alt="">
+            <span>Bater Ponto</span>
+          </a>
+          <a href="#" class="sidebar-item" onclick="goToMeuRelatorio()">
+            <img src="/assets/meurelatorio.png" alt="">
+            <span>Meu Relatório</span>
+          </a>
+          <a href="#" class="sidebar-item" onclick="goToSolicitarAjuste()">
+            <img src="/assets/solicitarajuste.png" alt="">
+            <span>Solicitar Ajuste</span>
+          </a>
+          <a href="#" class="sidebar-item" onclick="goToSolicitarHoraExtra()">
+            <img src="/assets/horaextra.png" alt="">
+            <span>Solicitar Hora Extra</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <h3>Informações</h3>
+        <div class="sidebar-info">
+          <div class="info-item">
+            <span class="info-label">Total de Horas:</span>
+            <span class="info-value" id="sidebar-horas-total">00:00</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Horas Extras:</span>
+            <span class="info-value" id="sidebar-horas-extras">00:00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay para fechar sidebar -->
+  <div id="dashboard-overlay" class="dashboard-overlay"></div>
 
   <div class="container-home">
     <div class="container-home-inside">
@@ -50,21 +100,21 @@
           <p>Bater ponto</p>
         </div>
 
-        <div class="card">
+        <div class="card" onclick="goToMeuRelatorio()">
           <div class="icon-card">
             <img src="/assets/meurelatorio.png" alt="">
           </div>
           <p>Meu Relatório</p>
         </div>
 
-        <div class="card">
+        <div class="card" onclick="goToSolicitarAjuste()">
           <div class="icon-card">
             <img src="/assets/solicitarajuste.png" alt="">
           </div>
           <p>Solicitar Ajuste</p>
         </div>
 
-        <div class="card">
+        <div class="card" onclick="goToSolicitarHoraExtra()">
           <div class="icon-card">
             <img src="/assets/horaextra.png" alt="">
           </div>
@@ -144,4 +194,61 @@
   function goToBaterPonto() {
     window.location = './baterponto.html'
   }
+  
+  function goToSolicitarAjuste() {
+    window.location = './solicitacaoajuste.html'
+  }
+
+  function goToSolicitarHoraExtra() {
+    window.location = './solicitacaohoras.html'
+  }
+
+  function goToMeuRelatorio() {
+    window.location = './relatorios.html'
+  }
+
+  // Controle da sidebar responsiva
+  function toggleDashboardSidebar() {
+    const sidebar = document.getElementById('dashboard-sidebar');
+    const overlay = document.getElementById('dashboard-overlay');
+    
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  }
+
+  function closeDashboardSidebar() {
+    const sidebar = document.getElementById('dashboard-sidebar');
+    const overlay = document.getElementById('dashboard-overlay');
+    
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+  }
+
+  // Event listeners
+  document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('dashboard-overlay');
+    const closeBtn = document.getElementById('close-dashboard-sidebar');
+    
+    if (overlay) {
+      overlay.addEventListener('click', closeDashboardSidebar);
+    }
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeDashboardSidebar);
+    }
+
+    // Sincronizar dados da sidebar com os dados principais
+    const horasTotal = document.getElementById('horasTotal');
+    const horasExtras = document.getElementById('horasExtras');
+    const sidebarHorasTotal = document.getElementById('sidebar-horas-total');
+    const sidebarHorasExtras = document.getElementById('sidebar-horas-extras');
+    
+    if (horasTotal && sidebarHorasTotal) {
+      sidebarHorasTotal.textContent = horasTotal.textContent;
+    }
+    
+    if (horasExtras && sidebarHorasExtras) {
+      sidebarHorasExtras.textContent = horasExtras.textContent;
+    }
+  });
 </script>

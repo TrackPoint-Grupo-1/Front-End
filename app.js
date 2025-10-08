@@ -45,6 +45,11 @@ app.get('/manager/horas-projeto', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/manager/horas-projeto.html'));
 });
 
+// Serve a página de relatório de horas
+app.get('/relatorio-horas', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '/relatorio-horas.html'));
+});
+
 // Rota para login
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;

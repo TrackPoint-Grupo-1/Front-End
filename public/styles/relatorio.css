@@ -1,0 +1,326 @@
+/* Estilos para Página de Relatório de Horas */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    line-height: 1.6;
+}
+
+.relatorio-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.relatorio-header {
+    background: #0d9488;
+    color: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.notification-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Main Content */
+.relatorio-main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Date Search Section */
+.date-search-section {
+    margin-bottom: 2rem;
+}
+
+.date-search-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.date-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.date-label {
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.date-input {
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    transition: all 0.2s ease;
+    min-width: 150px;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: #0d9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.search-btn {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-btn:hover {
+    background: #047857;
+    transform: translateY(-1px);
+}
+
+/* Report Type Section */
+.report-type-section {
+    margin-bottom: 2rem;
+}
+
+.report-type-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+/* Report Content Section */
+.report-content-section {
+    flex: 1;
+}
+
+.report-content-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.report-panel {
+    display: none;
+}
+
+.report-panel.active {
+    display: block;
+}
+
+.report-card {
+    min-height: 400px;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+}
+
+.report-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+}
+
+.add-btn {
+    background: #6b7280;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-btn:hover {
+    background: #4b5563;
+    transform: scale(1.05);
+}
+
+.report-body {
+    padding: 1.5rem;
+}
+
+/* Empty State */
+.empty-state-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+}
+
+.empty-state-content {
+    text-align: center;
+    color: #6b7280;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.empty-description {
+    font-size: 1rem;
+    color: #6b7280;
+}
+
+/* Error State */
+.error-banner {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    color: #991b1b;
+}
+
+.error-banner i {
+    font-size: 1.25rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.error-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.error-content p {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.error-detail {
+    font-weight: 500;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .relatorio-main {
+        padding: 1rem;
+    }
+    
+    .date-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .date-input {
+        min-width: auto;
+    }
+    
+    .header-content {
+        padding: 0 1rem;
+    }
+    
+    .logo {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .relatorio-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .relatorio-main {
+        padding: 0.5rem;
+    }
+    
+    .date-search-container,
+    .report-type-container {
+        padding: 1rem;
+    }
+    
+    .report-header {
+        padding: 1rem;
+    }
+    
+    .report-body {
+        padding: 1rem;
+    }
+}
