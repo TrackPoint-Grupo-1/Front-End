@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Preenche os horários batidos (com ajuste de fuso horário)
         turnoAtual.forEach(ponto => {
-            const horario = new Date(ponto.horario + "Z"); // força interpretação como UTC
+            const horario = new Date(ponto.horario);
             const horaLocal = horario.toLocaleTimeString("pt-BR", {
                 hour: "2-digit",
                 minute: "2-digit",

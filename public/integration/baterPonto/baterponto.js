@@ -5,7 +5,9 @@ const TIPOS_PONTO = ["ENTRADA", "ALMOCO", "VOLTA_ALMOCO", "SAIDA"];
 // Pega o horário atual no formato ISO (yyyy-MM-ddTHH:mm:ss)
 function horarioAtualISO() {
   const agora = new Date();
-  return agora.toISOString().split(".")[0];
+  const tzOffset = agora.getTimezoneOffset() * 60000; // diferença em ms do UTC
+  const localISO = new Date(agora - tzOffset).toISOString().slice(0, 19);
+  return localISO;
 }
 
 // Função para obter localização atual do usuário
