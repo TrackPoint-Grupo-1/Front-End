@@ -42,8 +42,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       projetosContainer.appendChild(row);
     });
   } catch (error) {
+    // 🧠 Trata erro 404 especificamente
+    if (error.status === 404 || error.message?.includes("404")) {
+      projetosContainer.innerHTML = "<p>Nenhum projeto encontrado.</p>";
+      console.warn("Nenhum projeto encontrado (404)");
+      return;
+    }
+
     console.error("Erro ao carregar projetos:", error);
     projetosContainer.innerHTML = "<p>Erro ao carregar projetos.</p>";
-    console.log("ERRO ERRO ERRO")
+    console.log("ERRO ERRO ERRO");
   }
 });
