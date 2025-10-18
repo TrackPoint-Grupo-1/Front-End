@@ -157,7 +157,7 @@
   background-color: #6c757d;
   border: none;
   cursor: pointer;
-  display: flex;
+  display: none; /* ✅ começa escondido */
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
