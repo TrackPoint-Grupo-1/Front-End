@@ -69,7 +69,7 @@ async function baterPonto() {
       tipo: proximoTipo,
       horario: horarioAtualISO(),
       localidade: localidade,
-      observacoes: ""
+      observacoes: "AUTOMATICO"
     });
 
     alert(`Ponto ${proximoTipo} registrado com sucesso!`);
