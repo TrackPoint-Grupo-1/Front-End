@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script type="module" src="../integration/Dashboard/kpiVisaoGeral.js"></script>
+    <script type="module" src="../integration/Dashboard/solicitacoesHorasExtras.js"></script>
     <script src="components/sidebar.js"></script>
     <script src="components/header.js"></script>
     <script src="components/metric-card.js"></script>
@@ -163,6 +164,19 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Empty state: mensagem amigável quando não há solicitações -->
+                        <div id="empty-solicitacoes-horas-extras"
+                            style="display:none; padding:1.5rem; text-align:center; color:#374151;">
+                            <div style="font-size:2rem; color:#9ca3af; margin-bottom:0.5rem;">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <div style="font-weight:600; font-size:1.05rem;">Nenhuma solicitação de horas extras encontradas
+                            </div>
+                            <div style="font-size:0.9rem; color:#6b7280; margin-top:0.25rem;">
+                                No momento não há solicitações pendentes para aprovação.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -273,6 +287,41 @@
             if (header) {
                 header.updateBreadcrumb('Visão Geral');
             }
+
+            // Verifica o card "Solicitações de Horas Extras" e exibe mensagem amigável
+            (function() {
+                const cards = Array.from(document.querySelectorAll('.card'));
+                const targetCard = cards.find(c => c.querySelector('.card-title')?.textContent?.trim().startsWith('Solicitações de Horas Extras'));
+                if (!targetCard) return;
+
+                const tableContainer = targetCard.querySelector('.table-container');
+                const tbody = targetCard.querySelector('table.table tbody');
+                const emptyState = targetCard.querySelector('#empty-solicitacoes-horas-extras');
+                const serverMsgPattern = 'Nenhuma solicitação de horas extras pendente encontrada para o gerente com id';
+
+                function updateEmptyState() {
+                    const text = (tbody?.textContent || '').trim();
+                    const hasRows = tbody && tbody.children.length > 0 && Array.from(tbody.children).some(tr => tr.querySelector('td'));
+                    const serverMessageDetected = text.includes(serverMsgPattern);
+                    if (!hasRows || serverMessageDetected) {
+                        if (tableContainer) tableContainer.style.display = 'none';
+                        if (emptyState) emptyState.style.display = 'block';
+                    } else {
+                        if (tableContainer) tableContainer.style.display = '';
+                        if (emptyState) emptyState.style.display = 'none';
+                    }
+                }
+
+                // Observa mudanças no tbody (caso os dados sejam carregados assincronamente)
+                if (tbody) {
+                    const observer = new MutationObserver(updateEmptyState);
+                    observer.observe(tbody, { childList: true, subtree: true });
+                }
+
+                // Checagens iniciais e pequena espera para permitir carregamento assíncrono
+                updateEmptyState();
+                setTimeout(updateEmptyState, 300);
+            })();
         });
     </script>
 </body>
