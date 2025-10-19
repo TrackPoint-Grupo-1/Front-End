@@ -91,7 +91,56 @@ function hideNoDateMessage() {
 // Relatório de horas
 // --------------------------------------------
 const tiposManuais = ["ENTRADA", "ALMOCO", "VOLTA_ALMOCO", "SAIDA"];
-addHoursBtn.addEventListener('click', addHoursEntry);
+addHoursBtn.addEventListener('click', async () => {
+    if (!selectedDate) { showNoDateMessage(); return; }
+
+    try {
+        // calcula primeiro e último dia do mês da data selecionada (formato dd/mm/yyyy)
+        const [dia, mes, ano] = selectedDate.split('/');
+        const firstDay = `01/${mes}/${ano}`;
+        const lastDayNum = new Date(parseInt(ano, 10), parseInt(mes, 10), 0).getDate();
+        const lastDay = `${String(lastDayNum).padStart(2, '0')}/${mes}/${ano}`;
+
+        const encodedInicio = encodeURIComponent(firstDay);
+        const encodedFim = encodeURIComponent(lastDay);
+
+        const solicitacoes = await get(
+            `/solicitacoes/listar-por-periodo/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`,
+            { "User-Agent": "trackpoint-frontend" }
+        );
+
+        // converte selectedDate para yyyy-mm-dd para comparar com os itens retornados
+        const isoSelected = `${ano}-${mes}-${dia}`;
+
+        const match = Array.isArray(solicitacoes)
+            ? solicitacoes.find(s => {
+                const sData = s.data || s.dataSolicitacao || '';
+                return sData === isoSelected;
+            })
+            : null;
+
+        if (!match) {
+            alert('Não é possível adicionar horas: não existe solicitação para a data selecionada.');
+            return;
+        }
+
+        const status = String(match.status || '').toUpperCase();
+
+        if (status === 'APROVADO') {
+            addHoursEntry();
+            return;
+        }
+
+        if (status === 'PENDENTE') {
+            alert('Existe uma solicitação PENDENTE para esta data. Porém, ela ainda não foi aprovada pelo seu gestor.');
+        }
+
+        alert('Não é possível adicionar horas: não existe solicitação aprovada para a data selecionada.');
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao verificar solicitações. Tente novamente.');
+    }
+});
 
 async function loadHoursData() {
     const tableBody = document.getElementById('hours-table-body');
@@ -140,7 +189,10 @@ async function loadHoursData() {
         const [dia, mes, ano] = selectedDate.split('/');
         const encodedInicio = encodeURIComponent(`${dia}/${mes}/${ano}`);
         const encodedFim = encodeURIComponent(`${dia}/${mes}/${ano}`);
-        const extrasData = await get(`/horas-extras/listar-horas/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`, { "User-Agent": "trackpoint-frontend" });
+        const extrasData = await get(
+            `/horas-extras/listar-horas/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`,
+            { "User-Agent": "trackpoint-frontend" }
+        );
 
         const totalHoras = extrasData.horasTotal?.totalHoras || 0;
         if (totalHoras > 0) {
@@ -152,25 +204,26 @@ async function loadHoursData() {
 
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>Hora Extra</td>
-                <td>-</td>
-                <td>${horaExtraFormatada}</td>
-                <td class="justificativa-cell" style="cursor:pointer;color:#1e90ff;text-decoration:underline;">${justificativa}</td>
-                <td>-</td>
-            `;
+        <td>Hora Extra</td>
+        <td>-</td>
+        <td>${horaExtraFormatada}</td>
+        <td class="justificativa-cell" style="cursor:pointer;color:#1e90ff;text-decoration:underline;">${justificativa}</td>
+        <td class="projeto-cell" style="cursor:pointer;color:#1e90ff;text-decoration:underline;"></td>
+    `;
             tableBody.appendChild(row);
 
+            // --- Justificativa ---
             const justificativaCell = row.querySelector('.justificativa-cell');
             justificativaCell.addEventListener('click', () => {
                 if (justificativaCell.querySelector('select')) return;
 
                 const select = document.createElement('select');
                 select.innerHTML = `
-                    <option value="">⚙️ Selecione uma justificativa</option>
-                    <option value="Cumprimento de Prazo Crítico">Cumprimento de Prazo Crítico</option>
-                    <option value="Imprevisto/Ocorrencia Urgente">Imprevisto/Ocorrencia Urgente</option>
-                    <option value="Demanda Excepcional">Demanda Excepcional</option>
-                `;
+            <option value="">⚙️ Selecione uma justificativa</option>
+            <option value="Cumprimento de Prazo Crítico">Cumprimento de Prazo Crítico</option>
+            <option value="Imprevisto/Ocorrencia Urgente">Imprevisto/Ocorrencia Urgente</option>
+            <option value="Demanda Excepcional">Demanda Excepcional</option>
+        `;
                 justificativaCell.innerHTML = '';
                 justificativaCell.appendChild(select);
                 select.focus();
@@ -179,14 +232,76 @@ async function loadHoursData() {
                     const novaJustificativa = select.value;
                     if (!novaJustificativa) return;
                     try {
-                        await patch(`/horas-extras/${horaExtraId}`, { justificativa: novaJustificativa }, { "User-Agent": "trackpoint-frontend" });
+                        await patch(`/horas-extras/${horaExtraId}`,
+                            { justificativa: novaJustificativa },
+                            { "User-Agent": "trackpoint-frontend" }
+                        );
                         justificativaCell.textContent = novaJustificativa;
-                    } catch (e) { justificativaCell.textContent = '-'; alert("Erro ao atualizar justificativa."); }
+                    } catch (e) {
+                        justificativaCell.textContent = '-';
+                        alert("Erro ao atualizar justificativa.");
+                    }
                 });
 
-                select.addEventListener('blur', () => { if (!select.value) justificativaCell.textContent = justificativa; });
+                select.addEventListener('blur', () => {
+                    if (!select.value) justificativaCell.textContent = justificativa;
+                });
             });
+
+            // Buscar projetos do usuário
+            const projetosOpcoes = await get(`/projetos/funcionario/${usuarioLogado.id}?status=ANDAMENTO`, { "User-Agent": "trackpoint-frontend" });
+
+            // Depois de criar a linha da tabela, adicionar o click para edição do projeto
+            const projetoCell = row.querySelector('.projeto-cell');
+            const codigoProjeto = extrasData.listaHoras?.[0]?.codigoProjeto;
+
+            // Preencher inicialmente o nome do projeto
+            if (codigoProjeto) {
+                try {
+                    const projetoData = await get(`/projetos/${codigoProjeto}`, { "User-Agent": "trackpoint-frontend" });
+                    projetoCell.textContent = projetoData.nome || "Projeto não selecionado";
+                } catch (e) {
+                    projetoCell.textContent = "Projeto não selecionado";
+                }
+            } else {
+                projetoCell.textContent = "Projeto não selecionado";
+            }
+
+            // Evento click para abrir o select
+            projetoCell.addEventListener('click', () => {
+                if (projetoCell.querySelector('select')) return;
+
+                const select = document.createElement('select');
+                select.innerHTML = `<option value="">Projeto não selecionado</option>` +
+                    projetosOpcoes.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+
+                select.value = codigoProjeto || "";
+                projetoCell.innerHTML = '';
+                projetoCell.appendChild(select);
+                select.focus();
+
+                select.addEventListener('change', async () => {
+                    const projetoId = select.value;
+                    if (!projetoId) return;
+                    try {
+                        await patch(`/horas-extras/${horaExtraId}`, { projeto: parseInt(projetoId) }, { "User-Agent": "trackpoint-frontend" });
+                        const projetoSelecionado = projetosOpcoes.find(p => p.id == projetoId)?.nome || "Projeto não selecionado";
+                        projetoCell.textContent = projetoSelecionado;
+                    } catch (e) {
+                        alert("Erro ao atualizar projeto.");
+                        projetoCell.textContent = projetosOpcoes.find(p => p.id == codigoProjeto)?.nome || "Projeto não selecionado";
+                    }
+                });
+
+                select.addEventListener('blur', () => {
+                    if (!select.value) {
+                        projetoCell.textContent = projetosOpcoes.find(p => p.id == codigoProjeto)?.nome || "Projeto não selecionado";
+                    }
+                });
+            });
+
         }
+
 
     } catch (err) { console.error(err); tableBody.innerHTML = `<tr><td colspan="5">Pontos não encontrados para a data selecionada</td></tr>`; controlarBotaoAdicionar(false); }
 }
@@ -272,6 +387,7 @@ function addProjectEntry() {
         <option value="">Selecione a ação</option>
         <option value="Desenvolvimento">Desenvolvimento</option>
         <option value="Reunião">Reunião</option>
+        <option value="Treinamento">Treinamento</option>
         <option value="Planejamento">Planejamento</option>
         <option value="Teste">Teste</option>
         <option value="Correção">Correção</option>
@@ -375,9 +491,7 @@ function addProjectEntry() {
     });
 }
 
-// ---------------------------------------------------
-// Busca apontamentos feitos para o usuário e data
-// ---------------------------------------------------
+
 // ---------------------------------------------------
 // Busca apontamentos feitos para o usuário e data
 // ---------------------------------------------------
