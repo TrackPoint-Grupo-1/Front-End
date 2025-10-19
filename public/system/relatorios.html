@@ -7,6 +7,7 @@
   <title>Relatórios - Trackpoint</title>
   <script src="/components/navbar.js"></script>
   <script src="/components/alert.js"></script>
+  <script type="module" src="../integration/relatorios.js"></script>
   <link rel="stylesheet" href="/styles/shared.css">
   <link rel="stylesheet" href="/styles/relatorios.css">
   <link rel="shortcut icon" href="/assets/favicon.png" type="image/x-icon">
@@ -15,7 +16,8 @@
 <body>
   <my-navbar>
     <!-- Conteúdo do lado esquerdo da navbar -->
-    <button slot="back" class="back-button" onclick="window.location.href='./home.html'" style="display: inline-flex; align-items: center; gap: 8px; background-color: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 10px 16px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
+    <button slot="back" class="back-button" onclick="window.location.href='./home.html'"
+      style="display: inline-flex; align-items: center; gap: 8px; background-color: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 10px 16px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
       <span class="back-icon" style="font-size: 16px; font-weight: bold;">←</span> Voltar
     </button>
     <span slot="left" class="title-navbar">TrackPoint</span>
@@ -43,13 +45,13 @@
         <label for="date-input">Busque uma data</label>
         <div class="search-input-group">
           <input type="text" id="date-input" placeholder="DD/MM/AAAA" class="date-input">
-          <button class="search-btn" onclick="searchReports()">Buscar</button>
+          <button class="search-btn" id="search-btn">Buscar</button>
         </div>
       </div>
-      
+
       <div class="report-tabs">
-        <button class="tab-btn active" id="hours-tab" onclick="switchTab('hours')">Relatório de Horas</button>
-        <button class="tab-btn" id="projects-tab" onclick="switchTab('projects')">Relatório de Projetos</button>
+        <button class="tab-btn" id="hours-tab">Relatório de Horas</button>
+        <button class="tab-btn" id="projects-tab">Relatório de Projetos</button>
       </div>
     </div>
 
@@ -60,6 +62,7 @@
           <thead>
             <tr>
               <th>Ação</th>
+              <th>Tipo</th>
               <th>Horas</th>
               <th>Justificativa</th>
               <th>Editar</th>
@@ -69,7 +72,7 @@
             <!-- Dados serão carregados dinamicamente -->
           </tbody>
         </table>
-        <button class="add-btn" onclick="addHoursEntry()">
+        <button class="add-btn">
           <span class="plus-icon">+</span>
         </button>
       </div>
@@ -84,8 +87,8 @@
               <th>Ação</th>
               <th>Descrição</th>
               <th>Horas</th>
-              <th>Nome</th>
-              <th>Editar</th>
+              <th>Projeto</th>
+              <th>Save</th>
             </tr>
           </thead>
           <tbody id="projects-table-body">
@@ -99,7 +102,9 @@
       <div class="error-message hidden" id="projects-error">
         <div class="error-content">
           <p>Há inconsistências no seu apontamento de projetos!</p>
-          <p>As horas em projetos não coincidem com as horas trabalhadas no dia. Ajuste seu apontamento. Falta apontar <span id="missing-hours">02:30:00</span></p>
+          <p>As horas em projetos não coincidem com as horas trabalhadas no dia. Ajuste seu apontamento. Falta apontar
+            <span id="missing-hours">02:30:00</span>
+          </p>
         </div>
       </div>
     </div>
@@ -111,149 +116,10 @@
   </div>
 
   <script>
-    let currentTab = 'hours';
-    let selectedDate = '';
-
-    // Dados de exemplo para o relatório de horas
-    const hoursData = {
-      '19/06/2025': [
-        { action: 'Marcação de Ponto', hours: '08:00', justification: '' },
-        { action: 'Marcação de Ponto', hours: '12:00', justification: '' },
-        { action: 'Marcação de Ponto', hours: '13:00', justification: '' },
-        { action: 'Marcação de Ponto', hours: '17:30', justification: '' },
-        { action: 'Hora Extra', hours: '00:30', justification: 'Pré-Definida' }
-      ]
-    };
-
-    // Dados de exemplo para o relatório de projetos
-    const projectsData = {
-      '19/05/2025': [
-        { action: 'Apontamento de Projetos', description: 'Projeto', hours: '06:00', name: 'Projeto Itaú' },
-        { action: 'Apontamento de Projetos', description: 'Reunião', hours: '01:30', name: 'Reunião 2025' },
-        { action: 'Apontamento de Projetos', description: 'Treinamento', hours: '01:00', name: 'Treinamento' }
-      ],
-      '19/05/2025-error': [
-        { action: 'Apontamento de Projetos', description: 'Projeto', hours: '06:00', name: 'DEVF000001' }
-      ]
-    };
-
-    function switchTab(tab) {
-      // Remove active class de todas as abas
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      
-      // Esconde todos os conteúdos
-      document.querySelectorAll('.report-content').forEach(content => content.classList.add('hidden'));
-      document.getElementById('no-date-message').classList.add('hidden');
-      
-      // Ativa a aba selecionada
-      document.getElementById(tab + '-tab').classList.add('active');
-      currentTab = tab;
-      
-      // Se há data selecionada, mostra o conteúdo
-      if (selectedDate) {
-        loadReportData();
-      }
-    }
-
-    function searchReports() {
-      const dateInput = document.getElementById('date-input');
-      selectedDate = dateInput.value;
-      
-      if (!selectedDate) {
-        showNoDateMessage();
-        return;
-      }
-      
-      loadReportData();
-    }
-
-    function loadReportData() {
-      hideNoDateMessage();
-      
-      if (currentTab === 'hours') {
-        loadHoursData();
-      } else {
-        loadProjectsData();
-      }
-    }
-
-    function loadHoursData() {
-      const tableBody = document.getElementById('hours-table-body');
-      const data = hoursData[selectedDate] || [];
-      
-      tableBody.innerHTML = '';
-      
-      data.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${entry.action}</td>
-          <td>${entry.hours}</td>
-          <td>${entry.justification}</td>
-          <td><button class="edit-btn">✏️</button></td>
-        `;
-        tableBody.appendChild(row);
-      });
-      
-      document.getElementById('hours-report').classList.remove('hidden');
-    }
-
-    function loadProjectsData() {
-      const tableBody = document.getElementById('projects-table-body');
-      const errorDiv = document.getElementById('projects-error');
-      
-      // Verifica se há dados para a data selecionada
-      const data = projectsData[selectedDate] || [];
-      
-      tableBody.innerHTML = '';
-      
-      data.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${entry.action}</td>
-          <td>${entry.description}</td>
-          <td>${entry.hours}</td>
-          <td>${entry.name}</td>
-          <td><button class="edit-btn">✏️</button></td>
-        `;
-        tableBody.appendChild(row);
-      });
-      
-      // Mostra erro se for a data com erro
-      if (selectedDate === '19/05/2025' && data.length > 0) {
-        errorDiv.classList.remove('hidden');
-      } else {
-        errorDiv.classList.add('hidden');
-      }
-      
-      document.getElementById('projects-report').classList.remove('hidden');
-    }
-
-    function showNoDateMessage() {
-      document.querySelectorAll('.report-content').forEach(content => content.classList.add('hidden'));
-      document.getElementById('no-date-message').classList.remove('hidden');
-    }
-
-    function hideNoDateMessage() {
-      document.getElementById('no-date-message').classList.add('hidden');
-    }
-
-    function addHoursEntry() {
-      // Implementar modal ou formulário para adicionar entrada de horas
-      alert('Funcionalidade de adicionar entrada de horas será implementada');
-    }
-
-    function addProjectEntry() {
-      // Implementar modal ou formulário para adicionar entrada de projeto
-      alert('Funcionalidade de adicionar entrada de projeto será implementada');
-    }
 
 
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', function() {
-      // Define data padrão para demonstração
-      document.getElementById('date-input').value = '19/06/2025';
-    });
   </script>
+
 </body>
 
 </html>
