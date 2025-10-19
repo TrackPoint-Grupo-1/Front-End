@@ -129,7 +129,7 @@ async function loadHoursData() {
                     <td>${entry.tipo}</td>
                     <td>${horaLocal}</td>
                     <td>${entry.observacoes || '-'}</td>
-                    <td>${isAutomatico ? '-' : '<button class="edit-btn">✏️</button>'}</td>
+                    <td>${isAutomatico ? '-' : '<button class="edit-btn">-</button>'}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -221,8 +221,14 @@ function addHoursEntry() {
 // --------------------------------------------
 async function loadProjectsData() {
     if (!selectedDate) return;
+
+    // Primeiro carrega os projetos disponíveis
     await fetchUserProjects(selectedDate);
+
+    // Depois busca os apontamentos feitos
+    await fetchUserApontamentos(selectedDate);
 }
+
 
 async function fetchUserProjects(date) {
     try {
@@ -311,18 +317,121 @@ function addProjectEntry() {
                 projetoId: projectId
             });
 
+
             alert("Apontamento salvo com sucesso!");
 
-            // converte linha em leitura
-            row.querySelector('td').textContent = action;
-            row.querySelector('.project-description').replaceWith(document.createTextNode(description));
-            row.querySelector('.project-hours').replaceWith(document.createTextNode(hours));
-            row.querySelector('.project-select').replaceWith(document.createTextNode(row.querySelector('.project-select').selectedOptions[0].textContent));
-            row.querySelector('.save-project-btn').remove();
+            // Atualiza dinamicamente a tabela de apontamentos
+            projectsTableBody.innerHTML = ""; // limpa a tabela
+            await fetchUserApontamentos(selectedDate); // recarrega os apontamentos atualizados
+
+            // Mantém o botão visível
+            addProjectBtn.style.display = "flex";
 
         } catch (err) {
-            console.error(err);
-            alert("Erro ao salvar apontamento.");
+            console.error("Erro ao salvar apontamento:", err);
+
+            try {
+                let mensagem = null;
+
+                // Caso err seja uma string (ex: "Erro no POST [400]: {...}")
+                if (typeof err === "string") {
+                    const match = err.match(/{.*}/s);
+                    if (match) {
+                        const data = JSON.parse(match[0]);
+                        mensagem = data.mensagem;
+                    }
+                }
+
+                // Caso err seja um objeto com resposta JSON
+                else if (typeof err === "object") {
+                    // Alguns erros podem vir com err.message contendo JSON
+                    if (err.message && err.message.includes("{")) {
+                        const match = err.message.match(/{.*}/s);
+                        if (match) {
+                            const data = JSON.parse(match[0]);
+                            mensagem = data.mensagem;
+                        }
+                    }
+                    // Ou já vir como objeto { mensagem: "..." }
+                    else if (err.mensagem) {
+                        mensagem = err.mensagem;
+                    }
+                }
+
+                // Exibir a mensagem do backend, se existir
+                if (mensagem) {
+                    alert(mensagem);
+                } else {
+                    alert("Erro ao salvar apontamento.");
+                }
+
+            } catch (parseError) {
+                console.warn("Erro ao processar mensagem do servidor:", parseError);
+                alert("Erro ao salvar apontamento.");
+            }
         }
+
+
     });
 }
+
+// ---------------------------------------------------
+// Busca apontamentos feitos para o usuário e data
+// ---------------------------------------------------
+// ---------------------------------------------------
+// Busca apontamentos feitos para o usuário e data
+// ---------------------------------------------------
+async function fetchUserApontamentos(date) {
+    if (!usuarioLogado) return;
+
+    try {
+        const userId = usuarioLogado.id;
+        const encodedDate = encodeURIComponent(date);
+
+        const apontamentos = await get(`/apontamento-horas/usuario/${userId}?data=${encodedDate}`, {
+            "User-Agent": "trackpoint-frontend"
+        });
+
+        // Limpa a tabela
+        projectsTableBody.innerHTML = '';
+
+        if (!apontamentos || apontamentos.length === 0) {
+            projectsTableBody.innerHTML = `
+                <tr><td colspan="5">Nenhum apontamento encontrado para esta data.</td></tr>
+            `;
+            addProjectBtn.style.display = 'flex'; // <── corrigido aqui
+            return;
+        }
+
+        // Renderiza os apontamentos existentes
+        apontamentos.forEach(a => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${a.acao}</td>
+                <td>${a.descricao}</td>
+                <td>${a.horas}</td>
+                <td>${a.projeto ? a.projeto.nome : '-'}</td>
+                <td><button class="edit-btn">-</button></td>
+            `;
+            projectsTableBody.appendChild(row);
+        });
+
+        // Mostra o botão de adicionar novo apontamento
+        addProjectBtn.style.display = 'flex'; // <── corrigido aqui também
+
+    } catch (error) {
+        if (error.message.includes('404')) {
+            projectsTableBody.innerHTML = `
+                <tr><td colspan="5">Nenhum apontamento encontrado para esta data.</td></tr>
+            `;
+            addProjectBtn.style.display = 'flex'; // <── corrigido
+        } else {
+            console.error("Erro ao buscar apontamentos:", error);
+            projectsTableBody.innerHTML = `
+                <tr><td colspan="5">Erro ao carregar apontamentos.</td></tr>
+            `;
+            addProjectBtn.style.display = 'none'; // <── corrigido
+        }
+    }
+}
+
