@@ -91,7 +91,56 @@ function hideNoDateMessage() {
 // Relatório de horas
 // --------------------------------------------
 const tiposManuais = ["ENTRADA", "ALMOCO", "VOLTA_ALMOCO", "SAIDA"];
-addHoursBtn.addEventListener('click', addHoursEntry);
+addHoursBtn.addEventListener('click', async () => {
+    if (!selectedDate) { showNoDateMessage(); return; }
+
+    try {
+        // calcula primeiro e último dia do mês da data selecionada (formato dd/mm/yyyy)
+        const [dia, mes, ano] = selectedDate.split('/');
+        const firstDay = `01/${mes}/${ano}`;
+        const lastDayNum = new Date(parseInt(ano, 10), parseInt(mes, 10), 0).getDate();
+        const lastDay = `${String(lastDayNum).padStart(2, '0')}/${mes}/${ano}`;
+
+        const encodedInicio = encodeURIComponent(firstDay);
+        const encodedFim = encodeURIComponent(lastDay);
+
+        const solicitacoes = await get(
+            `/solicitacoes/listar-por-periodo/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`,
+            { "User-Agent": "trackpoint-frontend" }
+        );
+
+        // converte selectedDate para yyyy-mm-dd para comparar com os itens retornados
+        const isoSelected = `${ano}-${mes}-${dia}`;
+
+        const match = Array.isArray(solicitacoes)
+            ? solicitacoes.find(s => {
+                const sData = s.data || s.dataSolicitacao || '';
+                return sData === isoSelected;
+            })
+            : null;
+
+        if (!match) {
+            alert('Não é possível adicionar horas: não existe solicitação para a data selecionada.');
+            return;
+        }
+
+        const status = String(match.status || '').toUpperCase();
+
+        if (status === 'APROVADO') {
+            addHoursEntry();
+            return;
+        }
+
+        if (status === 'PENDENTE') {
+            alert('Existe uma solicitação PENDENTE para esta data. Porém, ela ainda não foi aprovada pelo seu gestor.');
+        }
+
+        alert('Não é possível adicionar horas: não existe solicitação aprovada para a data selecionada.');
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao verificar solicitações. Tente novamente.');
+    }
+});
 
 async function loadHoursData() {
     const tableBody = document.getElementById('hours-table-body');
