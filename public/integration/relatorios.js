@@ -4,7 +4,13 @@ import { get, patch, post } from "./connection.js";
 // --------------------------------------------
 // Variáveis principais
 // --------------------------------------------
-const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+let usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+
+// Debug: verificar o que está no localStorage
+console.log('Usuário logado:', usuarioLogado);
+
+// Verificação de usuário será feita no DOMContentLoaded
+
 let currentTab = 'hours';
 let selectedDate = '';
 let addedRows = 0;
@@ -16,6 +22,13 @@ const projectsTableBody = document.getElementById('projects-table-body');
 const projectsError = document.getElementById('projects-error');
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Verifica se o usuário está logado
+    if (!usuarioLogado || !usuarioLogado.id) {
+        console.warn('Usuário não logado. Redirecionando para login...');
+        window.location.href = '/login';
+        return;
+    }
+    
     document.getElementById('search-btn').addEventListener('click', searchReports);
 
     // Eventos das abas
@@ -33,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedDate = `${day}/${month}/${year}`;
     document.getElementById('date-input').value = formattedDate;
     selectedDate = formattedDate;
+    
+    console.log('Data inicial definida:', selectedDate);
 
     // Carrega dados iniciais
     loadReportData();
@@ -54,6 +69,8 @@ function switchTab(tab) {
 async function searchReports() {
     const dateInput = document.getElementById('date-input');
     selectedDate = dateInput.value;
+    console.log('Data selecionada:', selectedDate);
+    
     if (!selectedDate) {
         showNoDateMessage();
         return;
@@ -105,7 +122,7 @@ addHoursBtn.addEventListener('click', async () => {
         const encodedFim = encodeURIComponent(lastDay);
 
         const solicitacoes = await get(
-            `/solicitacoes/listar-por-periodo/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`,
+            `/solicitacoes/${usuarioLogado.id}`,
             { "User-Agent": "trackpoint-frontend" }
         );
 
@@ -162,11 +179,33 @@ async function loadHoursData() {
         if (!selectedDate) return;
 
         const encodedDate = encodeURIComponent(selectedDate);
+        console.log('Buscando pontos para usuário:', usuarioLogado.id, 'data:', selectedDate);
         const data = await get(`/pontos/${usuarioLogado.id}?data=${encodedDate}`, { "User-Agent": "trackpoint-frontend" });
+        console.log('Dados retornados:', data);
 
         if (!data || data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5">Nenhum registro encontrado para esta data.</td></tr>`;
-            controlarBotaoAdicionar(false);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
+                        <div style="margin-bottom: 10px;">📅 Nenhum ponto registrado para ${selectedDate}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 15px;">
+                            Para registrar pontos, use a página "Bater Ponto" ou clique no botão "Adicionar" abaixo.
+                        </div>
+                        <button onclick="criarPontosTeste()" style="
+                            background: #008781; 
+                            color: white; 
+                            border: none; 
+                            padding: 8px 16px; 
+                            border-radius: 4px; 
+                            cursor: pointer; 
+                            font-size: 12px;
+                        ">
+                            🧪 Criar Pontos de Teste
+                        </button>
+                    </td>
+                </tr>
+            `;
+            controlarBotaoAdicionar(true); // Permite adicionar pontos mesmo quando não há dados
         } else {
             data.forEach(entry => {
                 const horario = new Date(entry.horario);
@@ -189,13 +228,25 @@ async function loadHoursData() {
         const [dia, mes, ano] = selectedDate.split('/');
         const encodedInicio = encodeURIComponent(`${dia}/${mes}/${ano}`);
         const encodedFim = encodeURIComponent(`${dia}/${mes}/${ano}`);
-        const extrasData = await get(
-            `/horas-extras/listar-horas/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`,
-            { "User-Agent": "trackpoint-frontend" }
-        );
-
-        const totalHoras = extrasData.horasTotal?.totalHoras || 0;
-        if (totalHoras > 0) {
+        
+        let totalHoras = 0;
+        let extrasData = null;
+        try {
+            extrasData = await get(
+                `/horas-extras/listar-horas/${usuarioLogado.id}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`,
+                { "User-Agent": "trackpoint-frontend" }
+            );
+            totalHoras = extrasData.horasTotal?.totalHoras || 0;
+        } catch (error) {
+            if (error.message.includes('404')) {
+                console.log('Nenhuma hora extra encontrada para esta data');
+                totalHoras = 0;
+            } else {
+                console.error('Erro ao buscar horas extras:', error);
+                totalHoras = 0;
+            }
+        }
+        if (totalHoras > 0 && extrasData) {
             const horas = Math.floor(totalHoras);
             const minutos = Math.round((totalHoras - horas) * 60);
             const horaExtraFormatada = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
@@ -336,6 +387,8 @@ function addHoursEntry() {
 // --------------------------------------------
 async function loadProjectsData() {
     if (!selectedDate) return;
+    
+    console.log('Carregando dados de projetos para data:', selectedDate);
 
     // Primeiro carrega os projetos disponíveis
     await fetchUserProjects(selectedDate);
@@ -501,10 +554,12 @@ async function fetchUserApontamentos(date) {
     try {
         const userId = usuarioLogado.id;
         const encodedDate = encodeURIComponent(date);
-
+        
+        console.log('Buscando apontamentos para usuário:', userId, 'data:', date);
         const apontamentos = await get(`/apontamento-horas/usuario/${userId}?data=${encodedDate}`, {
             "User-Agent": "trackpoint-frontend"
         });
+        console.log('Apontamentos retornados:', apontamentos);
 
         // Limpa a tabela
         projectsTableBody.innerHTML = '';
@@ -549,3 +604,71 @@ async function fetchUserApontamentos(date) {
     }
 }
 
+// ---------------------------------------------------
+// Função para criar pontos de teste
+// ---------------------------------------------------
+async function criarPontosTeste() {
+    if (!usuarioLogado || !selectedDate) {
+        alert('Erro: usuário não logado ou data não selecionada');
+        return;
+    }
+
+    try {
+        // Converte a data para o formato do backend
+        const [dia, mes, ano] = selectedDate.split('/');
+        const dataISO = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+        
+        // Cria pontos de teste para um dia típico
+        const pontosTeste = [
+            {
+                tipo: 'ENTRADA',
+                horario: `${dataISO}T08:00:00`,
+                localidade: 'Escritório Central',
+                observacoes: 'Entrada normal',
+                manual: false
+            },
+            {
+                tipo: 'ALMOCO',
+                horario: `${dataISO}T12:00:00`,
+                localidade: 'Escritório Central',
+                observacoes: 'Saída para almoço',
+                manual: false
+            },
+            {
+                tipo: 'VOLTA_ALMOCO',
+                horario: `${dataISO}T13:00:00`,
+                localidade: 'Escritório Central',
+                observacoes: 'Volta do almoço',
+                manual: false
+            },
+            {
+                tipo: 'SAIDA',
+                horario: `${dataISO}T17:00:00`,
+                localidade: 'Escritório Central',
+                observacoes: 'Saída normal',
+                manual: false
+            }
+        ];
+
+        // Cria os pontos via API
+        for (const ponto of pontosTeste) {
+            try {
+                await post(`/pontos/${usuarioLogado.id}`, ponto);
+            } catch (error) {
+                console.warn('Erro ao criar ponto:', ponto.tipo, error);
+            }
+        }
+
+        alert('✅ Pontos de teste criados com sucesso!');
+        
+        // Recarrega os dados
+        loadReportData();
+        
+    } catch (error) {
+        console.error('Erro ao criar pontos de teste:', error);
+        alert('❌ Erro ao criar pontos de teste. Verifique se o backend está funcionando.');
+    }
+}
+
+// Torna a função global para ser chamada pelo onclick
+window.criarPontosTeste = criarPontosTeste;
