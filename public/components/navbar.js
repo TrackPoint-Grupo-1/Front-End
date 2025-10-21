@@ -170,23 +170,15 @@ class MyNavbar extends HTMLElement {
           <slot name="back"></slot>
           <slot name="left"></slot>
         </div>
-        <button id="sidebar-btn">☰</button>
       </nav>
 
-      <aside id="sidebar">
-        <div class="sidebar-content">
-          <slot name="sidebar"></slot>
-        </div>
-      </aside>
-
+     
       <div id="overlay"></div>
     `;
 
     this.sidebar = shadow.querySelector('#sidebar');
     this.overlay = shadow.querySelector('#overlay');
-    this.btn = shadow.querySelector('#sidebar-btn');
 
-    this.btn.addEventListener('click', () => this.toggleSidebar());
     this.overlay.addEventListener('click', () => this.closeSidebar());
   }
 

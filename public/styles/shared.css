@@ -12,6 +12,22 @@
     --white: #FFFFFF;
 }
 
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 15px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
 
 * {
     font-family: 'Open Sans';
@@ -57,7 +73,7 @@
     color: #6D6D6D;
 }
 
-#close-btn-sidebar{
+#close-btn-sidebar {
     justify-self: flex-end;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     color: #6D6D6D;
@@ -72,7 +88,7 @@
     border-radius: 100%;
     justify-self: end;
 
-    &:hover{
+    &:hover {
         background-color: rgba(230, 226, 226, 0.717);
     }
 }
