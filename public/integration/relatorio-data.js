@@ -1,242 +1,248 @@
-// Integração de Dados - Relatório de Horas
+import { get, post } from "./connection.js";
 
-class RelatorioDataManager {
-    constructor() {
-        this.baseUrl = "http://localhost:8080";
-        this.cache = new Map();
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutos
-    }
+// Função para carregar dados de relatórios
+export async function carregarDadosRelatorio(usuarioId, data) {
+    try {
+        const [pontos, apontamentos, horasExtras] = await Promise.allSettled([
+            carregarPontosDoDia(usuarioId, data),
+            carregarApontamentosDoDia(usuarioId, data),
+            carregarHorasExtrasDoDia(usuarioId, data)
+        ]);
 
-    // Buscar dados do relatório de horas
-    async getHoursReport(date) {
-        try {
-            const cacheKey = `hours-report-${date}`;
-            const cached = this.getFromCache(cacheKey);
-            if (cached) return cached;
-
-            const response = await fetch(`${this.baseUrl}/relatorio/horas?data=${date}`);
-            if (!response.ok) {
-                throw new Error('Erro ao buscar relatório de horas');
-            }
-
-            const data = await response.json();
-            this.setCache(cacheKey, data);
-            return data;
-        } catch (error) {
-            console.error('Erro ao buscar relatório de horas:', error);
-            return this.getDefaultHoursData();
-        }
-    }
-
-    // Buscar dados do relatório de projetos
-    async getProjectsReport(date) {
-        try {
-            const cacheKey = `projects-report-${date}`;
-            const cached = this.getFromCache(cacheKey);
-            if (cached) return cached;
-
-            const response = await fetch(`${this.baseUrl}/relatorio/projetos?data=${date}`);
-            if (!response.ok) {
-                throw new Error('Erro ao buscar relatório de projetos');
-            }
-
-            const data = await response.json();
-            this.setCache(cacheKey, data);
-            return data;
-        } catch (error) {
-            console.error('Erro ao buscar relatório de projetos:', error);
-            return this.getDefaultProjectsData();
-        }
-    }
-
-    // Verificar inconsistências
-    async checkInconsistencies(date) {
-        try {
-            const response = await fetch(`${this.baseUrl}/relatorio/inconsistencias?data=${date}`);
-            if (!response.ok) {
-                return null;
-            }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Erro ao verificar inconsistências:', error);
-            return null;
-        }
-    }
-
-    // Dados padrão para relatório de horas
-    getDefaultHoursData() {
-        return [
-            {
-                id: 1,
-                action: 'Marcação de Ponto',
-                hours: '08:00',
-                justification: ''
-            },
-            {
-                id: 2,
-                action: 'Marcação de Ponto',
-                hours: '12:00',
-                justification: ''
-            },
-            {
-                id: 3,
-                action: 'Marcação de Ponto',
-                hours: '13:00',
-                justification: ''
-            },
-            {
-                id: 4,
-                action: 'Marcação de Ponto',
-                hours: '17:30',
-                justification: ''
-            },
-            {
-                id: 5,
-                action: 'Hora Extra',
-                hours: '00:30',
-                justification: 'Pré-Definida'
-            }
-        ];
-    }
-
-    // Dados padrão para relatório de projetos
-    getDefaultProjectsData() {
-        return [
-            {
-                id: 1,
-                action: 'Apontamento de Projetos',
-                description: 'Projeto',
-                hours: '06:00',
-                name: 'Projeto Itaú'
-            },
-            {
-                id: 2,
-                action: 'Apontamento de Projetos',
-                description: 'Reunião',
-                hours: '01:30',
-                name: 'Reunião 2025'
-            },
-            {
-                id: 3,
-                action: 'Apontamento de Projetos',
-                description: 'Treinamento',
-                hours: '01:00',
-                name: 'Treinamento'
-            }
-        ];
-    }
-
-    // Dados de exemplo com inconsistência
-    getInconsistencyData() {
         return {
-            hasInconsistency: true,
-            message: 'Há inconsistências no seu apontamento de projetos!',
-            detail: 'As horas em projetos não coincidem com as horas trabalhadas no dia. Ajuste seu apontamento.',
-            missingHours: '02:30:00'
+            pontos: pontos.status === 'fulfilled' ? pontos.value : [],
+            apontamentos: apontamentos.status === 'fulfilled' ? apontamentos.value : [],
+            horasExtras: horasExtras.status === 'fulfilled' ? horasExtras.value : null
         };
-    }
 
-    // Métodos de cache
-    getFromCache(key) {
-        const cached = this.cache.get(key);
-        if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-            return cached.data;
+    } catch (error) {
+        console.error("Erro ao carregar dados do relatório:", error);
+        return { pontos: [], apontamentos: [], horasExtras: null };
+    }
+}
+
+async function carregarPontosDoDia(usuarioId, data) {
+    const encodedDate = encodeURIComponent(data);
+    return await get(`/pontos/${usuarioId}?data=${encodedDate}`);
+}
+
+async function carregarApontamentosDoDia(usuarioId, data) {
+    const encodedDate = encodeURIComponent(data);
+    return await get(`/apontamento-horas/usuario/${usuarioId}?data=${encodedDate}`);
+}
+
+async function carregarHorasExtrasDoDia(usuarioId, data) {
+    const [dia, mes, ano] = data.split('/');
+    const dataInicio = `${dia}/${mes}/${ano}`;
+    const dataFim = `${dia}/${mes}/${ano}`;
+    
+    const encodedInicio = encodeURIComponent(dataInicio);
+    const encodedFim = encodeURIComponent(dataFim);
+    
+    return await get(`/horas-extras/listar-horas/${usuarioId}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`);
+}
+
+// Função para exportar relatório
+export async function exportarRelatorio(usuarioId, dataInicio, dataFim, formato = 'json') {
+    try {
+        const dados = await carregarDadosRelatorio(usuarioId, dataInicio, dataFim);
+        
+        if (formato === 'json') {
+            return exportarJSON(dados);
+        } else if (formato === 'csv') {
+            return exportarCSV(dados);
+        } else if (formato === 'pdf') {
+            return exportarPDF(dados);
         }
-        this.cache.delete(key);
-        return null;
+        
+    } catch (error) {
+        console.error("Erro ao exportar relatório:", error);
+        throw error;
     }
+}
 
-    setCache(key, data) {
-        this.cache.set(key, {
-            data: data,
-            timestamp: Date.now()
+// Função removida - estava duplicada com a exportada acima
+
+async function carregarPontosPorPeriodo(usuarioId, dataInicio, dataFim) {
+    const encodedInicio = encodeURIComponent(dataInicio);
+    const encodedFim = encodeURIComponent(dataFim);
+    return await get(`/pontos/${usuarioId}/periodo?dataInicio=${encodedInicio}&dataFim=${encodedFim}`);
+}
+
+async function carregarApontamentosPorPeriodo(usuarioId, dataInicio, dataFim) {
+    const encodedInicio = encodeURIComponent(dataInicio);
+    const encodedFim = encodeURIComponent(dataFim);
+    return await get(`/apontamento-horas/usuario/${usuarioId}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`);
+}
+
+async function carregarHorasExtrasPorPeriodo(usuarioId, dataInicio, dataFim) {
+    const encodedInicio = encodeURIComponent(dataInicio);
+    const encodedFim = encodeURIComponent(dataFim);
+    return await get(`/horas-extras/listar-horas/${usuarioId}?dataInicio=${encodedInicio}&dataFim=${encodedFim}`);
+}
+
+function exportarJSON(dados) {
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportarCSV(dados) {
+    let csv = 'Data,Tipo,Horario,Observacoes\n';
+    
+    // Adicionar pontos
+    if (dados.pontos && Array.isArray(dados.pontos)) {
+        dados.pontos.forEach(ponto => {
+            const data = new Date(ponto.horario).toLocaleDateString('pt-BR');
+            const horario = new Date(ponto.horario).toLocaleTimeString('pt-BR');
+            csv += `${data},${ponto.tipo},${horario},"${ponto.observacoes || ''}"\n`;
         });
     }
-
-    clearCache() {
-        this.cache.clear();
+    
+    // Adicionar apontamentos
+    if (dados.apontamentos && Array.isArray(dados.apontamentos)) {
+        dados.apontamentos.forEach(apontamento => {
+            csv += `${apontamento.data},${apontamento.acao},${apontamento.horas}h,"${apontamento.descricao || ''}"\n`;
+        });
     }
-
-    // Formatar data para exibição
-    formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('pt-BR');
-    }
-
-    // Validar data
-    isValidDate(dateString) {
-        const date = new Date(dateString);
-        return date instanceof Date && !isNaN(date);
-    }
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
-// Instância global do gerenciador de dados
-const relatorioData = new RelatorioDataManager();
+function exportarPDF(dados) {
+    // Implementação básica de PDF - em produção, use uma biblioteca como jsPDF
+    const conteudo = `
+        Relatório de Pontos e Apontamentos
+        Data: ${new Date().toLocaleDateString('pt-BR')}
+        
+        PONTOS:
+        ${dados.pontos ? dados.pontos.map(p => `${p.tipo}: ${new Date(p.horario).toLocaleTimeString('pt-BR')}`).join('\n') : 'Nenhum ponto encontrado'}
+        
+        APONTAMENTOS:
+        ${dados.apontamentos ? dados.apontamentos.map(a => `${a.acao}: ${a.horas}h - ${a.descricao}`).join('\n') : 'Nenhum apontamento encontrado'}
+    `;
+    
+    const blob = new Blob([conteudo], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
-// Inicialização quando a página carrega
-document.addEventListener('DOMContentLoaded', () => {
-    // Configurar eventos globais
-    setupGlobalEvents();
+// Função para validar dados de relatório
+export function validarDadosRelatorio(dados) {
+    const erros = [];
+    
+    if (!dados.pontos || !Array.isArray(dados.pontos)) {
+        erros.push('Dados de pontos inválidos');
+    }
+    
+    if (!dados.apontamentos || !Array.isArray(dados.apontamentos)) {
+        erros.push('Dados de apontamentos inválidos');
+    }
+    
+    return {
+        valido: erros.length === 0,
+        erros: erros
+    };
+}
+
+// Função para calcular estatísticas do relatório
+export function calcularEstatisticas(dados) {
+    const stats = {
+        totalPontos: dados.pontos ? dados.pontos.length : 0,
+        totalApontamentos: dados.apontamentos ? dados.apontamentos.length : 0,
+        totalHoras: 0,
+        projetos: new Set()
+    };
+    
+    // Calcular total de horas dos apontamentos
+    if (dados.apontamentos) {
+        dados.apontamentos.forEach(apontamento => {
+            stats.totalHoras += apontamento.horas || 0;
+            if (apontamento.projeto) {
+                stats.projetos.add(apontamento.projeto.nome || apontamento.projeto);
+            }
+        });
+    }
+    
+    stats.projetos = Array.from(stats.projetos);
+    
+    return stats;
+}
+
+// Inicializar quando o DOM carregar
+document.addEventListener("DOMContentLoaded", () => {
+    // Adicionar botões de exportação se não existirem
+    adicionarBotoesExportacao();
 });
 
-function setupGlobalEvents() {
-    // Evento para editar item
-    document.addEventListener('edit-item', (event) => {
-        const { id } = event.detail;
-        handleEditItem(id);
-    });
-
-    // Evento para adicionar item
-    document.addEventListener('add-item', (event) => {
-        const { type } = event.detail;
-        handleAddItem(type);
-    });
+function adicionarBotoesExportacao() {
+    const relatoriosContainer = document.querySelector('.container-relatorios');
+    if (!relatoriosContainer) return;
+    
+    const botoesContainer = document.createElement('div');
+    botoesContainer.className = 'export-buttons';
+    botoesContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: flex-end;
+    `;
+    
+    const botaoJSON = document.createElement('button');
+    botaoJSON.textContent = 'Exportar JSON';
+    botaoJSON.className = 'btn btn-secondary';
+    botaoJSON.addEventListener('click', () => exportarRelatorioAtual('json'));
+    
+    const botaoCSV = document.createElement('button');
+    botaoCSV.textContent = 'Exportar CSV';
+    botaoCSV.className = 'btn btn-secondary';
+    botaoCSV.addEventListener('click', () => exportarRelatorioAtual('csv'));
+    
+    const botaoPDF = document.createElement('button');
+    botaoPDF.textContent = 'Exportar PDF';
+    botaoPDF.className = 'btn btn-secondary';
+    botaoPDF.addEventListener('click', () => exportarRelatorioAtual('pdf'));
+    
+    botoesContainer.appendChild(botaoJSON);
+    botoesContainer.appendChild(botaoCSV);
+    botoesContainer.appendChild(botaoPDF);
+    
+    relatoriosContainer.insertBefore(botoesContainer, relatoriosContainer.firstChild);
 }
 
-function handleEditItem(id) {
-    console.log('Editando item:', id);
-    // Implementar modal de edição
-    alert(`Editando item ${id}`);
-}
-
-function handleAddItem(type) {
-    console.log('Adicionando item do tipo:', type);
-    // Implementar modal de adição
-    alert(`Adicionando novo item do tipo ${type}`);
-}
-
-// Função para carregar relatório
-async function loadReport(date, type) {
+async function exportarRelatorioAtual(formato) {
     try {
-        let data;
-        
-        if (type === 'hours') {
-            data = await relatorioData.getHoursReport(date);
-        } else {
-            data = await relatorioData.getProjectsReport(date);
+        const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+        if (!usuarioLogado || !usuarioLogado.id) {
+            alert('Usuário não encontrado. Faça login novamente.');
+            return;
         }
-
-        // Verificar inconsistências
-        const inconsistencies = await relatorioData.checkInconsistencies(date);
         
-        return {
-            data,
-            inconsistencies,
-            date: relatorioData.formatDate(date)
-        };
+        const dataInput = document.getElementById('date-input');
+        if (!dataInput || !dataInput.value) {
+            alert('Selecione uma data para exportar o relatório.');
+            return;
+        }
+        
+        await exportarRelatorio(usuarioLogado.id, dataInput.value, dataInput.value, formato);
+        alert('Relatório exportado com sucesso!');
+        
     } catch (error) {
-        console.error('Erro ao carregar relatório:', error);
-        return {
-            data: [],
-            inconsistencies: null,
-            date: relatorioData.formatDate(date),
-            error: error.message
-        };
+        console.error("Erro ao exportar relatório:", error);
+        alert('Erro ao exportar relatório. Tente novamente.');
     }
 }
-
-// Exportar para uso global
-window.relatorioData = relatorioData;
-window.loadReport = loadReport;

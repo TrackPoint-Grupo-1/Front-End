@@ -4,10 +4,14 @@ export const BASE_URL = "http://localhost:8080";
 export async function get(endpoint, headers = {}) {
   const url = `${BASE_URL}${endpoint}`;
   console.log("GET URL:", url); // 👈 loga a URL completa
+  console.log("GET Headers:", headers); // 👈 loga os headers
 
   const response = await fetch(url, {
     method: "GET",
-    headers: headers
+    headers: {
+      "Content-Type": "application/json",
+      ...headers
+    }
   });
 
   if (!response.ok) {

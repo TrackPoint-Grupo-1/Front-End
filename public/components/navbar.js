@@ -11,7 +11,7 @@ class MyNavbar extends HTMLElement {
         }
 
         nav {
-          display: flex;
+          display: flex; 
           justify-content: space-between;
           align-items: center;
           padding: 15px 55px;
@@ -134,10 +134,6 @@ class MyNavbar extends HTMLElement {
         }
 
         @media(max-width: 768px) {
-          aside#sidebar {
-            width: 80%;
-          }
-          
           .back-button {
             padding: 8px 12px;
             font-size: 12px;
@@ -166,20 +162,10 @@ class MyNavbar extends HTMLElement {
 
       <nav>
         <div class="navbar-left">
-          <slot name="hamburger"></slot>
           <slot name="back"></slot>
           <slot name="left"></slot>
         </div>
-        <button id="sidebar-btn">☰</button>
       </nav>
-
-      <aside id="sidebar">
-        <div class="sidebar-content">
-          <slot name="sidebar"></slot>
-        </div>
-      </aside>
-
-      <div id="overlay"></div>
     `;
 
     this.sidebar = shadow.querySelector('#sidebar');
@@ -190,32 +176,10 @@ class MyNavbar extends HTMLElement {
     this.overlay.addEventListener('click', () => this.closeSidebar());
   }
 
-  toggleSidebar() {
-    this.sidebar.classList.toggle('open');
-    this.overlay.classList.toggle('active');
-  }
-
-  closeSidebar() {
-    this.sidebar.classList.remove('open');
-    this.overlay.classList.remove('active');
-  }
+  // Métodos do menu hamburger removidos
 
   connectedCallback() {
-    // Fechar sidebar pelos botões X dentro do slot
-    const slot = this.shadow.querySelector('slot[name="sidebar"]');
-    slot.addEventListener('slotchange', () => {
-      const nodes = slot.assignedElements({ flatten: true });
-      if (!nodes.length) return;
-
-      // Busca todos os botões com id="close-btn-sidebar" dentro do conteúdo do slot
-      nodes.forEach(node => {
-        const closeBtns = node.querySelectorAll('#close-btn-sidebar');
-        closeBtns.forEach(btn => {
-          btn.addEventListener('click', () => this.closeSidebar());
-        });
-      });
-    });
-
+    // Menu hamburger removido - não há mais sidebar para gerenciar
   }
 }
 

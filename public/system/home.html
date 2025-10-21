@@ -9,6 +9,8 @@
   <script src="/components/alert.js"></script>
   <script type="module" src="../integration/home/ultimosProjetosAtivos.js"></script>
   <script type="module" src="../integration/home/meuBancoDeHoras.js"></script>
+  <script type="module" src="../integration/notifications.js"></script>
+  <script type="module" src="../integration/user-feedback.js"></script>
   <link rel="stylesheet" href="/styles/shared.css">
   <link rel="stylesheet" href="/styles/home.css">
   <link rel="shortcut icon" href="/assets/favicon.png" type="image/x-icon">
@@ -17,26 +19,7 @@
 <body>
   <my-navbar>
     <!-- Conteúdo do lado esquerdo da navbar -->
-    <button slot="hamburger" class="hamburger-btn" onclick="toggleDashboardSidebar()" id="hamburger-menu">
-      ☰
-    </button>
     <span slot="left" class="title-navbar">TrackPoint</span>
-
-    <!-- Conteúdo da sidebar -->
-    <div slot="sidebar">
-      <div class="container-sidebar">
-        <div class="container-title-sidebar">
-          <span>
-            <img src="/assets/icons8-lembrete-de-compromissos.png" width="40" height="40" alt="">
-            <h2 class="notifications">Notificações</h2>
-          </span>
-          <span id="close-btn-sidebar">X</span>
-        </div>
-        <my-alert type="danger" date="19/05/2025"></my-alert>
-        <my-alert type="alert" corrections="8" date="31/05/2025"></my-alert>
-        <my-alert type="normalized"></my-alert>
-      </div>
-    </div>
   </my-navbar>
 
   <!-- Sidebar responsiva para dashboard -->
@@ -226,16 +209,6 @@
 
   // Event listeners
   document.addEventListener('DOMContentLoaded', function() {
-    const overlay = document.getElementById('dashboard-overlay');
-    const closeBtn = document.getElementById('close-dashboard-sidebar');
-    
-    if (overlay) {
-      overlay.addEventListener('click', closeDashboardSidebar);
-    }
-    
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeDashboardSidebar);
-    }
 
     // Sincronizar dados da sidebar com os dados principais
     const horasTotal = document.getElementById('horasTotal');

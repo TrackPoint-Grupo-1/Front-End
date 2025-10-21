@@ -12,6 +12,7 @@
     <script type="module" src="../integration/baterPonto/minhaAgenda.js"></script>
     <script type="module" src="../integration/baterPonto/descricoes.js"></script>
     <script type="module" src="../integration/baterPonto/baterponto.js"></script>
+    <script type="module" src="../integration/user-feedback.js"></script>
     <link rel="stylesheet" href="/styles/shared.css">
     <link rel="stylesheet" href="/styles/baterponto.css">
     <link rel="shortcut icon" href="/assets/favicon.png" type="image/x-icon">
@@ -25,22 +26,7 @@
         </button>
         <span slot="left" class="title-navbar">TrackPoint</span>
 
-        <!-- Conteúdo da sidebar -->
-        <div slot="sidebar">
-            <div class="container-sidebar">
-                <div class="container-title-sidebar">
-                    <span>
-                        <img src="/assets/icons8-lembrete-de-compromissos.png" width="40" height="40" alt="">
-                        <h2 class="notifications">Notificações</h2>
-                    </span>
-                    <span id="close-btn-sidebar">X</span>
-                </div>
-                <my-alert type="danger" date="19/05/2025"></my-alert>
-                <my-alert type="alert" corrections="8" date="31/05/2025"></my-alert>
-                <my-alert type="normalized"></my-alert>
-            </div>
-
-        </div>
+        <!-- Sidebar removida -->
     </my-navbar>
 
     <div class="container-baterponto">

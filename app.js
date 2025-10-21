@@ -52,25 +52,37 @@ app.get('/relatorio-horas', (req, res) => {
 
 // Rota para login
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, senha } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Nome de usuário e senha são obrigatórios.' });
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
   }
 
   try {
-    // Exemplo de chamada ao backend Kotlin para verificar as credenciais
-    const response = await axios.post(`${BACKEND_URL}/login`, { username, password });
+    // Chamada ao backend Kotlin para verificar as credenciais usando o endpoint correto
+    const response = await axios.get(`${BACKEND_URL}/usuarios/preLogin`, {
+      headers: {
+        'email': email,
+        'senha': senha
+      }
+    });
 
-    if (response.data && response.data.token) {
-      // Supondo que o backend Kotlin retorne um token se a autenticação for bem-sucedida
-      res.json({ message: 'Login bem-sucedido!', token: response.data.token });
+    if (response.data) {
+      // Se a autenticação for bem-sucedida, retorna os dados do usuário
+      res.json({ 
+        message: 'Login bem-sucedido!', 
+        usuario: response.data 
+      });
     } else {
       res.status(401).json({ error: 'Credenciais inválidas.' });
     }
   } catch (error) {
     console.error('Erro no login:', error);
-    res.status(500).json({ error: 'Erro ao realizar login.' });
+    if (error.response && error.response.status === 401) {
+      res.status(401).json({ error: 'Credenciais inválidas.' });
+    } else {
+      res.status(500).json({ error: 'Erro ao realizar login.' });
+    }
   }
 });
 
