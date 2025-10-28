@@ -7,7 +7,7 @@ async function carregarHorasMensais(gerenteId) {
 
   const endpoint = `/apontamento-horas/gerente/${gerenteId}?dataInicio=${encodeURIComponent(
     inicio
-  )}&datafim=${encodeURIComponent(fim)}`;
+  )}&dataFim=${encodeURIComponent(fim)}`;
 
   try {
     const apontamentos = await get(endpoint);
@@ -95,7 +95,7 @@ async function carregarHorasExtras(gerenteId) {
   // endpoint para buscar apontamentos mensais (mesmo usado em carregarHorasMensais)
   const endpointApontamentos = `/apontamento-horas/gerente/${gerenteId}?dataInicio=${encodeURIComponent(
     inicio
-  )}&datafim=${encodeURIComponent(fim)}`;
+  )}&dataFim=${encodeURIComponent(fim)}`;
 
   try {
     const respostaExtras = await get(endpointExtras);
@@ -164,7 +164,7 @@ async function carregarPercentualTreinamento(gerenteId) {
   const { inicio, fim } = getInicioEFimDoMesAtual();
   const endpointApontamentos = `/apontamento-horas/gerente/${gerenteId}?dataInicio=${encodeURIComponent(
     inicio
-  )}&datafim=${encodeURIComponent(fim)}`;
+  )}&dataFim=${encodeURIComponent(fim)}`;
 
   try {
     const apontamentos = await get(endpointApontamentos);
