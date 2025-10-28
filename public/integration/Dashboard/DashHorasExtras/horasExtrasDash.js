@@ -1,5 +1,13 @@
 import { get } from "../../connection.js";
 
+// Util: converte "HH:mm:ss" para horas em decimal
+const parseHHMMSStoHours = (hhmmss) => {
+    if (!hhmmss || typeof hhmmss !== 'string') return 0;
+    const [h = '0', m = '0', s = '0'] = hhmmss.split(':');
+    const hours = Number(h) + Number(m) / 60 + Number(s) / 3600;
+    return Number.isFinite(hours) ? hours : 0;
+};
+
 async function loadKpiPlanejadasVsExecutadas() {
     const diasUteisMes = 22; // dias úteis fixos
     const gerenteId = 2; // ajuste conforme necessário
@@ -110,6 +118,7 @@ async function loadKpiPlanejadasVsExecutadas() {
     }
 }
 
+// Ajuste: usar total de horas extras do backend
 async function loadKpiHorasExtras() {
     const diasUteisMes = 22; // dias úteis fixos
     const gerenteId = 2; // ajuste conforme necessário
@@ -132,8 +141,10 @@ async function loadKpiHorasExtras() {
     const dataFim = fmt(lastDay);
 
     const endpoint = `/apontamento-horas/gerente/${gerenteId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+    const endpointExtras = `/horas-extras/total-horas-extras/projetos-gerente/${gerenteId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
 
     console.log("▶️ Requisição – endpoint (Horas Extras):", endpoint);
+    console.log("▶️ Requisição – endpoint (Total Horas Extras):", endpointExtras);
 
     const card = document.getElementById('kpi_horas_extras');
     if (!card) return; // não há cartão na página
@@ -144,10 +155,11 @@ async function loadKpiHorasExtras() {
     const changeSpan = changeEl?.querySelector('span');
 
     try {
+        // 1) Buscar apontamentos para derivar jornada planejada total
         const apontamentos = await get(endpoint);
         console.log("✅ Dados retornados (Horas Extras):", apontamentos);
 
-        // Agrupa por funcionário e calcula jornada mensal planejada e horas executadas
+        // Agrupa por funcionário para calcular jornada mensal planejada
         const funcionarios = {};
         apontamentos.forEach(item => {
             const user = item.projeto?.usuarios?.[0] || { id: item.usuarioId, nome: `Usuário ${item.usuarioId}`, jornada: item.jornada || 8 };
@@ -159,92 +171,27 @@ async function loadKpiHorasExtras() {
                 funcionarios[uid] = {
                     nome: user.nome || `id_${uid}`,
                     jornada: jornada,
-                    horas_planejadas: jornada * diasUteisMes,
-                    horas_executadas: 0
+                    horas_planejadas: jornada * diasUteisMes
                 };
             }
-
-            const feitas = Number(item.horasFeita ?? item.horas ?? 0);
-            funcionarios[uid].horas_executadas += feitas;
         });
 
         const total_planejadas = Object.values(funcionarios).reduce((s, f) => s + (f.horas_planejadas || 0), 0);
-        const total_executadas = Object.values(funcionarios).reduce((s, f) => s + (f.horas_executadas || 0), 0);
 
-        // Agrupa horas por usuário e dia e calcula extras por dia: max(0, horasFeitasDia - jornadaDiaria)
-        const dailyByUser = {};
-        apontamentos.forEach((item, idx) => {
-            const user = item.projeto?.usuarios?.[0] || { id: item.usuarioId, nome: `Usuário ${item.usuarioId}`, jornada: item.jornada || 8 };
-            if (!user) return;
-            const uid = user.id;
-
-            const feitas = Number(item.horasFeita ?? item.horas ?? 0) || 0;
-
-            // Tenta detectar o campo de data mais provável
-            const rawDate =
-                item.dataApontamento ||
-                item.data ||
-                item.dia ||
-                item.dataRegistro ||
-                item.dataHora ||
-                item.createdAt ||
-                null;
-
-            let dateKey;
-            if (rawDate instanceof Date) {
-                dateKey = rawDate.toISOString().slice(0, 10);
-            } else if (typeof rawDate === 'string') {
-                // usa os 10 primeiros caracteres (YYYY-MM-DD ou DD/MM/YYYY)
-                dateKey = rawDate.slice(0, 10);
-            } else {
-                // sem data: trata cada item como um "dia" separado
-                dateKey = `__no_date__${idx}`;
-            }
-
-            if (!dailyByUser[uid]) dailyByUser[uid] = {};
-            dailyByUser[uid][dateKey] = (dailyByUser[uid][dateKey] || 0) + feitas;
-        });
-
-        let total_extras = 0;
-        const resumoUsuarios = [];
-        Object.entries(dailyByUser).forEach(([uid, days]) => {
-            const jornada = funcionarios[uid]?.jornada || 8;
-            let extrasUsuario = 0;
-            Object.values(days).forEach(horasDia => {
-                extrasUsuario += Math.max(0, horasDia - jornada);
-            });
-            total_extras += extrasUsuario;
-            resumoUsuarios.push({
-                usuarioId: uid,
-                nome: funcionarios[uid]?.nome || `id_${uid}`,
-                jornadaDiaria: jornada,
-                extras_h: extrasUsuario.toFixed(2),
-            });
-        });
-
-        // Logs detalhando a nova fórmula (por dia)
-        if (resumoUsuarios.length) console.table(resumoUsuarios);
-        console.log(
-            `🧮 Cálculo KPI "Horas Extras sobre a Jornada Mensal (%)" (por dia)\n` +
-            `- Fórmula de extras: extrasDia = max(0, horasFeitasDia - jornadaDiaria)\n` +
-            `- Total planejadas (∑ jornadaDiaria * diasUteisMes): ${total_planejadas.toFixed(2)}h\n` +
-            `- Total executadas (∑ horasFeitas): ${total_executadas.toFixed(2)}h\n` +
-            `- Total extras (∑ extrasDia): ${total_extras.toFixed(2)}h`
-        );
+        // 2) Buscar total de horas extras do backend (HH:mm:ss)
+        const respExtras = await get(endpointExtras);
+        const total_extras = parseHHMMSStoHours(respExtras?.horaExtra);
+        console.log(`🧮 Total de horas extras (backend): ${respExtras?.horaExtra} = ${total_extras.toFixed(2)}h`);
+        console.log(`🧮 Jornada total planejada: ${total_planejadas.toFixed(2)}h`);
 
         // Percentual de horas extras sobre a jornada mensal total
         let percentualExtras = total_planejadas > 0 ? (total_extras / total_planejadas) * 100 : 0;
         percentualExtras = Math.max(0, percentualExtras);
 
-        console.log(
-            `📊 Percentual de Horas Extras = (total_extras / total_planejadas) * 100 = ` +
-            `(${total_extras.toFixed(2)} / ${total_planejadas.toFixed(2)}) * 100 = ${percentualExtras.toFixed(2)}%`
-        );
-
         // Atualiza valor principal (formatando com vírgula)
         valueEl.textContent = percentualExtras.toFixed(2).replace('.', ',') + '%';
 
-        // Mostra mudança — para este KPI mostramos o próprio percentual como "mudança" (ex.: +5%)
+        // Mostra mudança — para este KPI mostramos o próprio percentual arredondado
         const rounded = Math.round(percentualExtras);
         const sign = percentualExtras > 0 ? '+' : '';
         if (changeSpan) changeSpan.textContent = percentualExtras > 0 ? `${sign}${rounded}%` : '0%';
@@ -258,7 +205,7 @@ async function loadKpiHorasExtras() {
             if (changeIcon) changeIcon.className = 'fas fa-minus';
         }
 
-        // Tooltip com valores absolutos (opcional)
+        // Tooltip com valores absolutos
         if (changeEl) changeEl.title = `Horas extras: ${total_extras.toFixed(2)}h | Jornada total: ${total_planejadas.toFixed(2)}h`;
 
     } catch (err) {
@@ -292,6 +239,7 @@ async function loadKpiMediaHorasExtrasPorColaborador() {
     const dataInicio = fmt(firstDay);
     const dataFim = fmt(lastDay);
     const endpoint = `/apontamento-horas/gerente/${gerenteId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+    const endpointExtras = `/horas-extras/total-horas-extras/projetos-gerente/${gerenteId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
 
     const card = document.getElementById('kpi_media_horas_extras');
     if (!card) return;
@@ -311,6 +259,7 @@ async function loadKpiMediaHorasExtrasPorColaborador() {
     };
 
     try {
+        // Buscar apontamentos para derivar colaboradores e jornada total
         const apontamentos = await get(endpoint);
 
         // Mapa com jornada e nome por usuário
@@ -328,49 +277,15 @@ async function loadKpiMediaHorasExtrasPorColaborador() {
             }
         });
 
-        // Agrupar por usuário/dia para calcular extra diário
-        const dailyByUser = {};
-        apontamentos.forEach((item, idx) => {
-            const user = item.projeto?.usuarios?.[0] || { id: item.usuarioId, nome: `Usuário ${item.usuarioId}`, jornada: item.jornada || 8 };
-            if (!user) return;
-            const uid = user.id;
-            const feitas = Number(item.horasFeita ?? item.horas ?? 0) || 0;
+        const total_users = Object.keys(funcionarios).length;
+        const total_planejadas = Object.values(funcionarios).reduce((s, f) => s + (f.horas_planejadas || 0), 0);
 
-            const rawDate =
-                item.dataApontamento ||
-                item.data ||
-                item.dia ||
-                item.dataRegistro ||
-                item.dataHora ||
-                item.createdAt ||
-                null;
+        // Buscar total de horas extras do backend (HH:mm:ss)
+        const respExtras = await get(endpointExtras);
+        const total_extras = parseHHMMSStoHours(respExtras?.horaExtra);
+        console.log(`🧮 Total de horas extras (backend): ${respExtras?.horaExtra} = ${total_extras.toFixed(2)}h | Colaboradores: ${total_users}`);
 
-            let dateKey;
-            if (rawDate instanceof Date) {
-                dateKey = rawDate.toISOString().slice(0, 10);
-            } else if (typeof rawDate === 'string') {
-                dateKey = rawDate.slice(0, 10);
-            } else {
-                dateKey = `__no_date__${idx}`;
-            }
-
-            if (!dailyByUser[uid]) dailyByUser[uid] = {};
-            dailyByUser[uid][dateKey] = (dailyByUser[uid][dateKey] || 0) + feitas;
-        });
-
-        // Calcular extras por usuário e média
-        let total_extras = 0;
-        let total_users = 0;
-        Object.entries(dailyByUser).forEach(([uid, days]) => {
-            const jornada = funcionarios[uid]?.jornada || 8;
-            let extrasUsuario = 0;
-            Object.values(days).forEach(horasDia => {
-                extrasUsuario += Math.max(0, horasDia - jornada);
-            });
-            total_extras += extrasUsuario;
-            total_users += 1;
-        });
-
+        // Média por colaborador
         const mediaHorasExtras = total_users > 0 ? total_extras / total_users : 0;
 
         // Atualiza UI
@@ -380,7 +295,6 @@ async function loadKpiMediaHorasExtrasPorColaborador() {
         if (changeIcon) changeIcon.className = 'fas fa-minus';
 
         // Tooltip
-        const total_planejadas = Object.values(funcionarios).reduce((s, f) => s + (f.horas_planejadas || 0), 0);
         if (changeEl) changeEl.title = `Média: ${hoursToHHMMSS(mediaHorasExtras)} | Extras totais: ${total_extras.toFixed(2)}h | Colaboradores: ${total_users} | Jornada total: ${total_planejadas.toFixed(2)}h`;
 
         // Logs
