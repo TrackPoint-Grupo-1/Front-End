@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,14 +15,16 @@
     <script src="components/metric-card.js"></script>
     <script src="components/chart-card.js"></script>
     <script type="module" src="integration/navigation.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasExtras/graficos.js"></script>
 </head>
+
 <body>
     <div class="dashboard-layout">
         <app-sidebar></app-sidebar>
-        
+
         <div class="main-content">
             <app-header></app-header>
-            
+
             <div class="content-area">
                 <!-- Métricas Principais -->
                 <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
@@ -38,7 +41,7 @@
                             <span>+0%</span>
                         </div>
                     </div>
-                    
+
                     <div id="kpi_horas_extras" class="metric-card" style="--metric-color: #059669;">
                         <div class="metric-header">
                             <div class="metric-title">Horas Extras sobre a Jornada Mensal (%)</div>
@@ -52,7 +55,7 @@
                             <span>+0%</span>
                         </div>
                     </div>
-                    
+
                     <div id="kpi_media_horas_extras" class="metric-card" style="--metric-color: #ea580c;">
                         <div class="metric-header">
                             <div class="metric-title">Média de horas extras por colaborador</div>
@@ -78,34 +81,35 @@
                             <h3 class="card-title">Ranking de Horas Extras Mensais</h3>
                             <div class="card-actions">
                                 <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-filter"></i> Filtrar
-                                </button>
-                                <button class="btn btn-secondary btn-sm">
                                     <i class="fas fa-download"></i> Exportar
                                 </button>
                             </div>
                         </div>
                         <div class="card-content">
-                            <div class="chart-container">
+                            <div id="chart_ranking_horas_extras" class="chart-container">
                                 <div class="chart-placeholder">
                                     <i class="fas fa-chart-bar"></i>
                                     <p>Gráfico de Barras</p>
-                                    <span class="text-sm text-gray-500">Ranking de colaboradores que mais fizeram horas extras no mês</span>
+                                    <span class="text-sm text-gray-500">Ranking de colaboradores que mais fizeram horas
+                                        extras no mês</span>
                                 </div>
                             </div>
                             <p class="text-sm text-gray-600 mt-4">
-                                <strong>Legenda:</strong> Ranking de colaboradores que mais fizeram horas extras no mês, essas pessoas podem estar sofrendo sobrecarga.
+                                <strong>Legenda:</strong> Ranking de colaboradores que mais fizeram horas extras no mês,
+                                essas pessoas podem estar sofrendo sobrecarga.
                             </p>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Limitação de Horas Extras</h3>
                             <div class="card-actions">
                                 <div class="search-container" style="position: relative; margin-right: 0.5rem;">
-                                    <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem;"></i>
-                                    <input type="text" placeholder="Buscar Colaborador..." style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                    <i class="fas fa-search"
+                                        style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem;"></i>
+                                    <input type="text" placeholder="Buscar Colaborador..."
+                                        style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                                 </div>
                                 <button class="btn btn-secondary btn-sm">
                                     <i class="fas fa-download"></i> Exportar
@@ -123,64 +127,8 @@
                                             <th>HORAS EXTRAS</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>
-                                                <span class="status-badge danger">
-                                                    <i class="fas fa-ban"></i>
-                                                    Bloqueado
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600;">EJ</div>
-                                                    <div>
-                                                        <div style="font-weight: 500;">Ester Jackson</div>
-                                                        <div style="font-size: 0.75rem; color: #64748b;">ester@gmail.com</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>12:00:00</td>
-                                            <td>12:00:00</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <span class="status-badge warning">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                    Alerta
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600;">JM</div>
-                                                    <div>
-                                                        <div style="font-weight: 500;">James Martins</div>
-                                                        <div style="font-size: 0.75rem; color: #64748b;">james@gmail.com</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>12:00:00</td>
-                                            <td>10:00:00</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <span class="status-badge warning">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                    Alerta
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: #0d9488; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600;">MP</div>
-                                                    <div>
-                                                        <div style="font-weight: 500;">Mathew Perry</div>
-                                                        <div style="font-size: 0.75rem; color: #64748b;">mathew@gmail.com</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>12:00:00</td>
-                                            <td>08:34:00</td>
-                                        </tr>
+                                    <tbody id="table_limite_horas_extras_body">
+                                        <!-- preenchido via JS -->
                                     </tbody>
                                 </table>
                             </div>
@@ -203,34 +151,33 @@
                             </div>
                         </div>
                         <div class="card-content">
-                            <div class="chart-container">
+                            <div id="chart_distribuicao_horas_extras" class="chart-container">
                                 <div class="chart-placeholder">
                                     <i class="fas fa-chart-pie"></i>
                                     <p>Gráfico de Pizza</p>
-                                    <span class="text-sm text-gray-500">Projeto A (30%), Projeto B (20%), Projeto C (35%), Projeto D (15%)</span>
+                                    <span class="text-sm text-gray-500">Projeto A (30%), Projeto B (20%), Projeto C
+                                        (35%), Projeto D (15%)</span>
                                 </div>
                             </div>
                             <p class="text-sm text-gray-600 mt-4">
-                                <strong>Legenda:</strong> Os projetos que mais possuem horas-extras podem apresentar sobrecarga do time, revisar a equipe é uma boa tomada de decisão.
+                                <strong>Legenda:</strong> Os projetos que mais possuem horas-extras podem apresentar
+                                sobrecarga do time, revisar a equipe é uma boa tomada de decisão.
                             </p>
                         </div>
                     </div>
-                    
+
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Desvio entre Horas Extras Planejadas vs. Realizadas</h3>
                             <div class="card-actions">
                                 <span class="text-sm text-teal-600 font-semibold">+5% em Maio de 2025</span>
                                 <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-filter"></i> Filtrar
-                                </button>
-                                <button class="btn btn-secondary btn-sm">
                                     <i class="fas fa-download"></i> Exportar
                                 </button>
                             </div>
                         </div>
                         <div class="card-content">
-                            <div class="chart-container">
+                            <div class="chart-container" id="chart_desvio_planejado_realizado">
                                 <div class="chart-placeholder">
                                     <i class="fas fa-chart-area"></i>
                                     <p>Gráfico de Área</p>
@@ -238,7 +185,9 @@
                                 </div>
                             </div>
                             <p class="text-sm text-gray-600 mt-4">
-                                <strong>Legenda:</strong> O desvio representa a diferença de horas extras que foram solicitados e as horas que foram realizadas, quanto menor a diferença maior será a previsibilidade.
+                                <strong>Legenda:</strong> O desvio representa a diferença de horas extras que foram
+                                solicitados e as horas que foram realizadas, quanto menor a diferença maior será a
+                                previsibilidade.
                             </p>
                         </div>
                     </div>
@@ -252,15 +201,12 @@
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
                                     <input type="checkbox" checked style="accent-color: #0d9488;">
-                                    2024
+
                                 </label>
                                 <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
                                     <input type="checkbox" checked style="accent-color: #0d9488;">
-                                    2025
+
                                 </label>
-                                <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-filter"></i> Filtrar
-                                </button>
                                 <button class="btn btn-secondary btn-sm">
                                     <i class="fas fa-download"></i> Exportar
                                 </button>
@@ -268,7 +214,7 @@
                         </div>
                     </div>
                     <div class="card-content">
-                        <div class="chart-container" style="height: 400px;">
+                        <div class="chart-container" id="chart_comparacao_anual" style="height: 400px;">
                             <div class="chart-placeholder">
                                 <i class="fas fa-chart-bar"></i>
                                 <p>Gráfico de Barras Duplas</p>
@@ -276,7 +222,9 @@
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mt-4">
-                            <strong>Legenda:</strong> A comparação anual pode contribuir para um entendimento amplo sobre a sobrecarga da equipe nos últimos anos.
+                            <strong>Legenda:</strong> A comparação anual pode contribuir para um entendimento amplo
+                            sobre a sobrecarga
+                            da equipe nos últimos anos.
                         </p>
                     </div>
                 </div>
@@ -289,15 +237,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.querySelector('app-sidebar');
             const header = document.querySelector('app-header');
-            
+
             if (sidebar) {
                 sidebar.setActivePage('horas-extras');
             }
-            
+
             if (header) {
                 header.updateBreadcrumb('Horas Extras');
             }
         });
     </script>
 </body>
+
 </html>

@@ -60,16 +60,6 @@ class AppHeader extends HTMLElement {
                     align-items: center;
                 }
                 
-                .search-input {
-                    width: 300px;
-                    padding: 0.5rem 1rem 0.5rem 2.5rem;
-                    border: 1px solid #d1d5db;
-                    border-radius: 8px;
-                    font-size: 0.875rem;
-                    background: #f9fafb;
-                    transition: all 0.2s ease;
-                }
-                
                 .search-input:focus {
                     outline: none;
                     border-color: #0d9488;
@@ -149,10 +139,6 @@ class AppHeader extends HTMLElement {
                         padding: 1rem;
                     }
                     
-                    .search-input {
-                        width: 200px;
-                    }
-                    
                     .mobile-menu-btn {
                         display: flex;
                     }
@@ -187,10 +173,6 @@ class AppHeader extends HTMLElement {
                 </div>
                 
                 <div class="header-right">
-                    <div class="search-container">
-                        <i class="search-icon fas fa-search"></i>
-                        <input type="text" class="search-input" placeholder="O que procura?">
-                    </div>
                     
                     <div class="header-actions">
                         <button class="action-button" title="Notificações">
@@ -223,18 +205,6 @@ class AppHeader extends HTMLElement {
         if (mobileMenuBtn) {
             mobileMenuBtn.addEventListener('click', () => {
                 this.dispatchEvent(new CustomEvent('toggle-sidebar', {
-                    bubbles: true,
-                    composed: true
-                }));
-            });
-        }
-        
-        // Evento para busca
-        const searchInput = this.shadowRoot.querySelector('.search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.dispatchEvent(new CustomEvent('search', {
-                    detail: { query: e.target.value },
                     bubbles: true,
                     composed: true
                 }));
