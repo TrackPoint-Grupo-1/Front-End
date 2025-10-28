@@ -9,6 +9,7 @@
     <script src="../components/navbar.js"></script>
     <script src="../components/filled-button.js"></script>
     <script src="../components/alert.js"></script>
+    <script type="module" src="../integration/solicitacaoHoraExtra.js"></script>
     <link rel="stylesheet" href="../styles/shared.css">
     <link rel="stylesheet" href="../styles/solicitacoes.css">
     <link rel="shortcut icon" href="../assets/favicon.png" type="image/x-icon">
@@ -17,7 +18,8 @@
 <body>
     <my-navbar>
         <!-- Conteúdo do lado esquerdo da navbar -->
-        <button slot="back" class="back-button" onclick="window.location.href='./home.html'" style="display: inline-flex; align-items: center; gap: 8px; background-color: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 10px 16px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
+        <button slot="back" class="back-button" onclick="window.location.href='./home.html'"
+            style="display: inline-flex; align-items: center; gap: 8px; background-color: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 10px 16px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-right: 15px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
             <span class="back-icon" style="font-size: 16px; font-weight: bold;">←</span> Voltar
         </button>
         <span slot="left" class="title-navbar">TrackPoint</span>
@@ -43,32 +45,31 @@
         <div class="container-form">
             <h1>Solicitação de Hora Extra</h1>
 
-            <form action="#" method="POST">
+            <!-- id esperado pelo script: solicitacaoHoraExtraForm -->
+            <form id="solicitacaoHoraExtraForm" action="#" method="POST">
 
                 <div class="form-row three-columns">
                     <div class="form-group">
-                        <label for="dataExtra">Data da hora extra</label>
-                        <input type="date" id="dataExtra" name="dataExtra" required>
+                        <label for="data">Data da hora extra</label>
+                        <input type="date" id="data" name="data" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="horaInicio">De</label>
-                        <input type="text" id="horaInicio" name="horaInicio" placeholder="HH:MM" required>
+                        <label for="horasDe">De</label>
+                        <input type="text" id="horasDe" name="horasDe" placeholder="HH:MM" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="horaFim">Até</label>
-                        <input type="text" id="horaFim" name="horaFim" placeholder="HH:MM" required>
+                        <label for="horasAte">Até</label>
+                        <input type="text" id="horasAte" name="horasAte" placeholder="HH:MM" required>
                     </div>
                 </div>
 
                 <div class="form-group full-width">
-                    <label for="nomeProjeto">Nome do Projeto</label>
-                    <select class="placeholder" id="nomeProjeto" name="nomeProjeto" required>
-                        <option value="" disabled selected>Selecione</option>
-                        <option value="projetoA">Projeto Alfa</option>
-                        <option value="projetoB">Projeto Beta</option>
-                        <option value="projetoC">Projeto Gama</option>
+                    <label for="projeto">Nome do Projeto</label>
+                    <!-- id/name 'projeto' para compatibilidade com public/integration/solicitacaoHoraExtra.js -->
+                    <select class="placeholder" id="projeto" name="projeto" required>
+                        <option value="" disabled selected>Carregando projetos...</option>
                     </select>
                 </div>
 
@@ -83,11 +84,12 @@
                 </div>
 
                 <div class="form-group full-width">
-                    <label for="observacoes">Observações</label>
-                    <textarea id="observacoes" name="observacoes" rows="3"></textarea>
+                    <label for="observacao">Observações</label>
+                    <textarea id="observacao" name="observacao" rows="3"></textarea>
                 </div>
 
-                <button type="submit" class="my-button">Enviar</button>
+                <!-- trocar para type="button" e adicionar id esperado pelo script para evitar submissão da página -->
+                <button type="button" id="submitSolicitacaoHoraExtra" class="my-button">Enviar</button>
 
                 <p class="footer-message"></p>
 
