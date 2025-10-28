@@ -8,11 +8,11 @@
     <link rel="shortcut icon" href="../assets/favicon.png" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script type="module" src="../integration/Dashboard/DashHorasExtras/horasExtrasDash.js"></script>
     <script src="components/sidebar.js"></script>
     <script src="components/header.js"></script>
     <script src="components/metric-card.js"></script>
     <script src="components/chart-card.js"></script>
-    <script type="module" src="integration/dashboard-data.js"></script>
     <script type="module" src="integration/navigation.js"></script>
 </head>
 <body>
@@ -25,35 +25,35 @@
             <div class="content-area">
                 <!-- Métricas Principais -->
                 <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="metric-card" style="--metric-color: #0d9488;">
+                    <div id="kpi_planejadas_executadas" class="metric-card" style="--metric-color: #0d9488;">
                         <div class="metric-header">
                             <div class="metric-title">% Dif de Horas Planejadas vs Executadas</div>
                             <div class="metric-icon">
                                 <i class="fas fa-chart-pie"></i>
                             </div>
                         </div>
-                        <div class="metric-value">47,05%</div>
+                        <div class="metric-value">00,00%</div>
                         <div class="metric-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>+5%</span>
+                            <span>+0%</span>
                         </div>
                     </div>
                     
-                    <div class="metric-card" style="--metric-color: #059669;">
+                    <div id="kpi_horas_extras" class="metric-card" style="--metric-color: #059669;">
                         <div class="metric-header">
                             <div class="metric-title">Horas Extras sobre a Jornada Mensal (%)</div>
                             <div class="metric-icon">
                                 <i class="fas fa-chart-bar"></i>
                             </div>
                         </div>
-                        <div class="metric-value">25,04%</div>
+                        <div class="metric-value">00,00%</div>
                         <div class="metric-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>+5%</span>
+                            <span>+0%</span>
                         </div>
                     </div>
                     
-                    <div class="metric-card" style="--metric-color: #ea580c;">
+                    <div id="kpi_media_horas_extras" class="metric-card" style="--metric-color: #ea580c;">
                         <div class="metric-header">
                             <div class="metric-title">Média de horas extras por colaborador</div>
                             <div class="metric-icon">
