@@ -31,9 +31,9 @@ class NavigationManager {
 
     navigateToPage(page) {
         const pageMap = {
-            'visao-geral': '/manager/visao-geral',
-            'horas-extras': '/manager/horas-extras',
-            'horas-projeto': '/manager/horas-projeto'
+            'visao-geral': '/manager/visao-geral.html',
+            'horas-extras': '/manager/horas-extras.html',
+            'horas-projeto': '/manager/horas-projeto.html'
         };
 
         const url = pageMap[page];

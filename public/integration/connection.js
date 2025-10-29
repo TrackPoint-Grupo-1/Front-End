@@ -1,5 +1,5 @@
 // Base URL do backend
-export const BASE_URL = "http://localhost:8080";
+export const BASE_URL = "/track";
 
 export async function get(endpoint, headers = {}) {
   const url = `${BASE_URL}${endpoint}`;

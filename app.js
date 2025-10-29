@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
+const BACKEND_URL = process.env.BACKEND_URL || '/track';
 
 // Serve a página de login
 app.get('/login', (req, res) => {
@@ -33,20 +33,20 @@ app.get('/system/home.html', (req, res) => {
 });
 
 // Serve as páginas do dashboard do gestor
-app.get('/manager/visao-geral', (req, res) => {
+app.get('/manager/visao-geral.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/manager/visao-geral.html'));
 });
 
-app.get('/manager/horas-extras', (req, res) => {
+app.get('/manager/horas-extras.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/manager/horas-extras.html'));
 });
 
-app.get('/manager/horas-projeto', (req, res) => {
+app.get('/manager/horas-projeto.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/manager/horas-projeto.html'));
 });
 
 // Serve a página de relatório de horas
-app.get('/relatorio-horas', (req, res) => {
+app.get('/relatorio-horas.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/relatorio-horas.html'));
 });
 

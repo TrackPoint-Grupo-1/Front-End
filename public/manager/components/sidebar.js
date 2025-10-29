@@ -193,19 +193,19 @@ class Sidebar extends HTMLElement {
                 <div class="nav-section">
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="/manager/visao-geral" class="nav-link" data-page="visao-geral">
+                            <a href="/manager/visao-geral.html" class="nav-link" data-page="visao-geral">
                                 <i class="nav-icon fas fa-home"></i>
                                 Visão Geral
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="/manager/horas-extras" class="nav-link" data-page="horas-extras">
+                            <a href="/manager/horas-extras.html" class="nav-link" data-page="horas-extras">
                                 <i class="nav-icon fas fa-chart-bar"></i>
                                 Horas Extras
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="/manager/horas-projeto" class="nav-link" data-page="horas-projeto">
+                            <a href="/manager/horas-projeto.html" class="nav-link" data-page="horas-projeto">
                                 <i class="nav-icon fas fa-calendar-alt"></i>
                                 Horas em Projetos
                             </a>

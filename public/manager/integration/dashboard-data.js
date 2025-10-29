@@ -2,7 +2,7 @@ import { get, patch, post } from "../../integration/connection.js";
 
 class DashboardDataManager {
     constructor() {
-        this.baseUrl = "http://localhost:8080";
+        this.baseUrl = "/track";
         this.cache = new Map();
         this.cacheTimeout = 5 * 60 * 1000; // 5 minutos
     }
