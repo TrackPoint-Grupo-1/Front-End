@@ -201,7 +201,11 @@ import { get, patch } from "../connection.js";
 				// Se vier objeto com "mensagem" do backend, considerar como vazio.
 				if (!Array.isArray(data) || data.length === 0 || (data && data.mensagem)) {
 					tbody.innerHTML = "";
-					showEmpty(tableContainer, emptyState);
+					if (emptyState) {
+						showEmpty(tableContainer, emptyState);
+					} else {
+						setTbodyMessage(tbody, "Não há nenhuma solicitação.", tableContainer, emptyState);
+					}
 					return;
 				}
 				showTable(tableContainer, emptyState);
@@ -214,8 +218,14 @@ import { get, patch } from "../connection.js";
 					showEmpty(tableContainer, emptyState);
 					return;
 				}
+				// Para qualquer outra falha, exibir estado vazio em vez de mensagem de erro
 				console.error(e);
-				setTbodyMessage(tbody, "Erro ao carregar solicitações.", tableContainer, emptyState);
+				tbody.innerHTML = "";
+				if (emptyState) {
+					showEmpty(tableContainer, emptyState);
+				} else {
+					setTbodyMessage(tbody, "Não há nenhuma solicitação.", tableContainer, emptyState);
+				}
 			}
 		};
 

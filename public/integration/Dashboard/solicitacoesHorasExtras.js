@@ -204,9 +204,11 @@ async function carregarSolicitacoesHorasExtras(gerenteId) {
         return;
       }
     } catch (__) { /* ignore */ }
-
+    // qualquer outro erro também exibirá empty-state para manter UX consistente conforme solicitado
     console.error("Erro ao carregar solicitações de horas extras:", err);
-    tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erro ao carregar solicitações</td></tr>`;
+    tableBody.innerHTML = "";
+    if (tableContainer) tableContainer.style.display = "none";
+    if (emptyState) emptyState.style.display = "block";
   }
 }
 
