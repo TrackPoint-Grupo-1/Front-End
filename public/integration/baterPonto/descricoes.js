@@ -3,6 +3,14 @@ import { get } from "../connection.js";
 console.log("DESCRICOES.JS")
 
 // --------------------
+// Estado e timers (break em andamento)
+// --------------------
+let breakTimerId = null;        // atualiza o relógio em tela a cada segundo
+let breakStatusSyncId = null;   // revalida com o backend periodicamente
+let breakInicio = null;         // Date do início do almoço em andamento
+let usuarioIdCache = null;      // cache do id do usuário logado
+
+// --------------------
 // Função para formatar a data em português
 // --------------------
 function formatarDataAtual() {
@@ -45,6 +53,61 @@ function atualizarDataHora() {
 }
 
 // --------------------
+// Formatação utilitária
+// --------------------
+// Minutos e segundos: "MMm SSs"
+function formatarMinSeg(ms) {
+    const totalSeg = Math.floor(ms / 1000);
+    const minutos = String(Math.floor(totalSeg / 60)).padStart(2, "0");
+    const segundos = String(totalSeg % 60).padStart(2, "0");
+    return `${minutos}m ${segundos}s`;
+}
+
+// --------------------
+// Controle do timer dinâmico do break em andamento
+// --------------------
+function tickBreakTimer() {
+    if (!breakInicio) return;
+    const diffMs = Date.now() - breakInicio.getTime();
+    if (diffMs < 0) return;
+    let texto;
+    if (diffMs >= 8 * 60 * 60 * 1000) {
+        texto = "+8h (em andamento)";
+    } else {
+        texto = `${formatarMinSeg(diffMs)} (em andamento)`;
+    }
+    atualizarBreakTexto(texto);
+}
+
+function iniciarBreakTimer(inicio) {
+    // Evita recriar se já estamos contando do mesmo início
+    if (breakInicio && inicio instanceof Date && breakInicio.getTime() === inicio.getTime()) {
+        return;
+    }
+    pararBreakTimer();
+    breakInicio = inicio instanceof Date ? inicio : null;
+    if (!breakInicio) return;
+
+    // Atualiza imediatamente e depois a cada segundo
+    tickBreakTimer();
+    breakTimerId = setInterval(tickBreakTimer, 1000);
+
+    // De tempos em tempos, revalida com o backend se o break já foi encerrado
+    // Mantemos leve: a cada 20 segundos durante o andamento
+    breakStatusSyncId = setInterval(() => {
+        if (usuarioIdCache) carregarBreak(usuarioIdCache);
+    }, 20000);
+}
+
+function pararBreakTimer() {
+    if (breakTimerId) clearInterval(breakTimerId);
+    if (breakStatusSyncId) clearInterval(breakStatusSyncId);
+    breakTimerId = null;
+    breakStatusSyncId = null;
+    breakInicio = null;
+}
+
+// --------------------
 // Buscar dados do backend e calcular break
 // --------------------
 // --------------------
@@ -60,6 +123,8 @@ async function carregarBreak(usuarioIdParam) {
                 usuarioId = usuarioLogado?.id;
             } catch (_) { /* ignora */ }
         }
+        // guarda em cache para o timer de sincronização
+        usuarioIdCache = usuarioId || usuarioIdCache;
         if (!usuarioId) {
             console.warn("Não foi possível determinar o ID do usuário para calcular o break.");
             atualizarBreakTexto("--:--");
@@ -75,7 +140,7 @@ async function carregarBreak(usuarioIdParam) {
 
         const endpoint = `/pontos/${usuarioId}?data=${encodeURIComponent(dataFormatada)}`;
         console.log("[Break] Chamando endpoint:", endpoint);
-    let registros = await get(endpoint);
+        let registros = await get(endpoint);
 
         // Garante que registros é array
         if (!Array.isArray(registros)) {
@@ -179,13 +244,6 @@ async function carregarBreak(usuarioIdParam) {
         const { almoco, volta } = obterParAlmoco();
 
         let textoBreak = "--:--";
-        // Helper para formatar em minutos e segundos (MMm SSs)
-        function formatarMinSeg(ms) {
-            const totalSeg = Math.floor(ms / 1000);
-            const minutos = String(Math.floor(totalSeg / 60)).padStart(2, "0");
-            const segundos = String(totalSeg % 60).padStart(2, "0");
-            return `${minutos}m ${segundos}s`;
-        }
 
         if (almoco && volta) {
             const inicio = parseComoLocal(almoco.horario) || new Date(almoco.horario);
@@ -204,12 +262,16 @@ async function carregarBreak(usuarioIdParam) {
             } else {
                 textoBreak = "00m 00s"; // horários fora de ordem
             }
+            // Encerrado: para o timer de andamento, se houver
+            pararBreakTimer();
         } else if (almoco && !volta) {
             // Almoço em andamento: cálculo minuto/segundo claro
             const inicio = parseComoLocal(almoco.horario) || new Date(almoco.horario);
-            const agora = new Date();
-            const diffMs = agora - inicio;
-            if (diffMs > 0 && diffMs < 8 * 60 * 60000) { // limita a 8h para evitar valores absurdos
+            // Inicia/continua o timer dinâmico em tela
+            iniciarBreakTimer(inicio);
+            // A mensagem em si será atualizada pelo tick a cada segundo
+            const diffMs = Date.now() - inicio.getTime();
+            if (diffMs > 0 && diffMs < 8 * 60 * 60000) {
                 textoBreak = `${formatarMinSeg(diffMs)} (em andamento)`;
             } else if (diffMs >= 8 * 60 * 60000) {
                 textoBreak = "+8h (em andamento)";
@@ -264,3 +326,8 @@ function iniciarDescricoes() {
 }
 
 document.addEventListener("DOMContentLoaded", iniciarDescricoes);
+
+// Limpa timers ao sair da página
+window.addEventListener("beforeunload", () => {
+    pararBreakTimer();
+});
