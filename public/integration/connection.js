@@ -45,6 +45,42 @@ export async function patch(endpoint, body = null, headers = {}) {
   return response.json();
 }
 
+// PUT genérico
+export async function put(endpoint, body = null, headers = {}) {
+  const url = `${BASE_URL}${endpoint}`;
+  console.log("PUT URL:", url, body);
+
+  const opts = {
+    method: "PUT",
+    headers: {
+      ...(body !== null ? { "Content-Type": "application/json" } : {}),
+      ...headers
+    },
+    body: body !== null ? JSON.stringify(body) : null
+  };
+
+  const response = await fetch(url, opts);
+
+  if (!response.ok) {
+    let errorText;
+    try {
+      const errorData = await response.json();
+      errorText = errorData.message || JSON.stringify(errorData);
+    } catch {
+      errorText = await response.text();
+    }
+    throw new Error(`Erro no PUT [${response.status}]: ${errorText}`);
+  }
+
+  // alguns PUTs podem não retornar JSON
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { ok: true };
+  }
+}
+
 // POST genérico
 export async function post(endpoint, body = {}, headers = {}) {
   const url = `${BASE_URL}${endpoint}`;
