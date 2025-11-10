@@ -210,12 +210,6 @@ class Sidebar extends HTMLElement {
                                 Horas em Projetos
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-shield-alt"></i>
-                                Proteção de Dados
-                            </a>
-                        </li>
                     </ul>
                 </div>
                 
@@ -226,12 +220,6 @@ class Sidebar extends HTMLElement {
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-user"></i>
                                 Perfil
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-cog"></i>
-                                Configurações
                             </a>
                         </li>
                     </ul>
