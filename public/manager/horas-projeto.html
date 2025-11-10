@@ -14,6 +14,13 @@
     <script src="components/chart-card.js"></script>
     <script type="module" src="integration/dashboard-data.js"></script>
     <script type="module" src="integration/navigation.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/cadastroProjeto.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/listaProjeto.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/kpi.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/graficosReuniao.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/graficosTreinamento.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/graficosDesenvolvimento.js"></script>
+    <script type="module" src="../integration/Dashboard/DashHorasProjeto/exportarGraficos.js"></script>
 </head>
 <body>
     <div class="dashboard-layout">
@@ -27,29 +34,29 @@
                 <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="metric-card" style="--metric-color: #0d9488;">
                         <div class="metric-header">
-                            <div class="metric-title">Total de Horas em Projetos - Mensal</div>
+                            <div class="metric-title">TOTAL DE HORAS NÃO APONTADAS - MENSAL</div>
                             <div class="metric-icon">
                                 <i class="fas fa-folder"></i>
                             </div>
                         </div>
-                        <div class="metric-value">800:80:00</div>
+                        <div class="metric-value">--:--</div>
                         <div class="metric-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>+12%</span>
+                            <span>+--%</span>
                         </div>
                     </div>
                     
                     <div class="metric-card" style="--metric-color: #ea580c;">
                         <div class="metric-header">
-                            <div class="metric-title">% de Alocação em Treinamento - Mensal</div>
+                            <div class="metric-title">% de Alocação em Desenvolvimento - Mensal</div>
                             <div class="metric-icon">
                                 <i class="fas fa-chart-bar"></i>
                             </div>
                         </div>
-                        <div class="metric-value">85,04%</div>
+                        <div class="metric-value">--%</div>
                         <div class="metric-change negative">
                             <i class="fas fa-arrow-down"></i>
-                            <span>-5%</span>
+                            <span>--%</span>
                         </div>
                     </div>
                     
@@ -60,10 +67,10 @@
                                 <i class="fas fa-calendar"></i>
                             </div>
                         </div>
-                        <div class="metric-value">41,02%</div>
+                        <div class="metric-value">--%</div>
                         <div class="metric-change positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>+12%</span>
+                            <span>+--%</span>
                         </div>
                     </div>
                 </div>
@@ -78,35 +85,40 @@
                             <h3 class="card-title">Cadastro de Projetos</h3>
                         </div>
                         <div class="card-content">
-                            <form class="project-form">
+                            <form class="project-form" id="project-form">
                                 <div class="form-group">
-                                    <label class="form-label">Nome do Projeto</label>
-                                    <input type="text" class="form-input" placeholder="Digite o nome do projeto">
+                                    <label class="form-label" for="project-name">Nome do Projeto</label>
+                                    <input type="text" id="project-name" class="form-input" placeholder="Digite o nome do projeto" required>
                                 </div>
-                                
+
                                 <div class="form-group">
-                                    <label class="form-label">Nome do Gerente Responsável</label>
-                                    <select class="form-select">
-                                        <option>Selecione o gerente responsável pelo projeto</option>
-                                        <option>Ester Jackson</option>
-                                        <option>James Martins</option>
-                                        <option>Mathew Perry</option>
-                                    </select>
+                                    <label class="form-label" for="project-desc">Descrição</label>
+                                    <textarea id="project-desc" class="form-input" placeholder="Descreva o projeto" rows="3" required></textarea>
                                 </div>
-                                
+
                                 <div class="form-group">
-                                    <label class="form-label">Horas necessárias</label>
-                                    <input type="text" class="form-input" placeholder="HH:MM:SS">
+                                    <label class="form-label" for="project-deadline">Previsão de Entrega</label>
+                                    <input type="date" id="project-deadline" class="form-input" required>
                                 </div>
-                                
-                                <div class="form-checkbox">
-                                    <input type="checkbox" id="sensitive-project">
-                                    <label for="sensitive-project">O projeto é sensível?</label>
+
+                                <div class="form-group">
+                                    <label class="form-label">Gerentes do Projeto</label>
+                                    <input type="text" id="search-gerentes" class="form-input" placeholder="Buscar gerente por nome..." autocomplete="off">
+                                    <div id="list-gerentes" class="listbox" style="max-height: 220px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.5rem; margin-top: 0.5rem;">
+                                        <div class="text-sm text-gray-500">Carregando gerentes...</div>
+                                    </div>
                                 </div>
-                                <p class="text-sm text-gray-600" style="margin-top: -0.5rem; margin-bottom: 1.5rem;">
-                                    Projetos sensíveis têm acesso restrito e maior controle de segurança.
-                                </p>
-                                
+
+                                <div class="form-group">
+                                    <label class="form-label">Colaboradores</label>
+                                    <input type="text" id="search-usuarios" class="form-input" placeholder="Buscar colaborador por nome..." autocomplete="off">
+                                    <div id="list-usuarios" class="listbox" style="max-height: 220px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 0.5rem; margin-top: 0.5rem;">
+                                        <div class="text-sm text-gray-500">Carregando colaboradores...</div>
+                                    </div>
+                                </div>
+
+                                <div id="project-form-error" class="text-sm" style="color:#dc2626; display:none; margin-bottom:0.75rem;"></div>
+
                                 <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
                                     <i class="fas fa-plus"></i>
                                     Cadastrar Projeto
@@ -121,9 +133,9 @@
                             <div class="card-actions">
                                 <div class="search-container" style="position: relative; margin-right: 0.5rem;">
                                     <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 0.875rem;"></i>
-                                    <input type="text" placeholder="Buscar Projeto..." style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                                    <input id="project-search" type="text" placeholder="Buscar Projeto..." style="width: 200px; padding: 0.5rem 1rem 0.5rem 2.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
                                 </div>
-                                <button class="btn btn-secondary btn-sm">
+                                <button id="export-projects-csv" class="btn btn-secondary btn-sm">
                                     <i class="fas fa-download"></i> Exportar
                                 </button>
                             </div>
@@ -133,63 +145,15 @@
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th>NOME DO PROJETO</th>
-                                            <th>GERENTE RESPONSÁVEL</th>
-                                            <th>HORAS PLAN X D</th>
-                                            <th>SENSÍVEL</th>
-                                            <th>ATIVO</th>
-                                            <th>AÇÕES</th>
+                                            <th style="min-width: 220px;">NOME DO PROJETO</th>
+                                            <th style="min-width: 220px;">GERENTES</th>
+                                            <th style="min-width: 160px;">PREVISÃO DE ENTREGA</th>
+                                            <th style="min-width: 160px;">STATUS</th>
+                                            <th style="min-width: 160px;">AÇÕES</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td style="font-weight: 500;">Nome Projeto X</td>
-                                            <td>Ester Jackson</td>
-                                            <td>400:00:00</td>
-                                            <td>
-                                                <span class="status-badge success">SIM</span>
-                                            </td>
-                                            <td>
-                                                <input type="checkbox" checked style="accent-color: #0d9488;">
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-secondary btn-sm">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="font-weight: 500;">Nome Projeto Y</td>
-                                            <td>Ester Jackson</td>
-                                            <td>120:00:00</td>
-                                            <td>
-                                                <span class="status-badge info">NÃO</span>
-                                            </td>
-                                            <td>
-                                                <input type="checkbox" checked style="accent-color: #0d9488;">
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-secondary btn-sm">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style="font-weight: 500;">Nome Projeto Z</td>
-                                            <td>Ester Jackson</td>
-                                            <td>15:00:00</td>
-                                            <td>
-                                                <span class="status-badge info">NÃO</span>
-                                            </td>
-                                            <td>
-                                                <input type="checkbox" checked style="accent-color: #0d9488;">
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-secondary btn-sm">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                    <tbody id="projects-table-body">
+                                        <tr><td colspan="5">Carregando projetos...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -204,12 +168,9 @@
                 <div class="grid-2">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Horas em Treinamento - Mensal</h3>
+                            <h3 class="card-title">Horas em Desenvolvimento - Mensal</h3>
                             <div class="card-actions">
-                                <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-filter"></i> Filtrar
-                                </button>
-                                <button class="btn btn-secondary btn-sm">
+                                <button class="btn btn-secondary btn-sm" data-export="chart">
                                     <i class="fas fa-download"></i> Exportar
                                 </button>
                             </div>
@@ -223,7 +184,7 @@
                                 </div>
                             </div>
                             <p class="text-sm text-gray-600 mt-4">
-                                <strong>Legenda:</strong> O treinamento da equipe é fundamental para o sucesso de uma empresa, pois melhora a produtividade, a inovação e a adaptação às mudanças.
+                                <strong>Legenda:</strong> Barras representam o total de horas dedicadas a atividades de desenvolvimento por mês (por projeto). Use este gráfico para identificar picos de demanda, tendências mensais e áreas que podem precisar de redistribuição de esforço.
                             </p>
                         </div>
                     </div>
@@ -232,10 +193,7 @@
                         <div class="card-header">
                             <h3 class="card-title">Horas em Reunião - Mensal</h3>
                             <div class="card-actions">
-                                <button class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-filter"></i> Filtrar
-                                </button>
-                                <button class="btn btn-secondary btn-sm">
+                                <button class="btn btn-secondary btn-sm" data-export="chart">
                                     <i class="fas fa-download"></i> Exportar
                                 </button>
                             </div>
@@ -264,25 +222,64 @@
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.querySelector('app-sidebar');
             const header = document.querySelector('app-header');
-            
-            if (sidebar) {
-                sidebar.setActivePage('horas-projeto');
-            }
-            
-            if (header) {
-                header.updateBreadcrumb('Horas em Projetos');
+
+            if (sidebar) sidebar.setActivePage('horas-projeto');
+            if (header) header.updateBreadcrumb('Horas em Projetos');
+
+            // Exportar CSV da lista de projetos
+            const exportBtn = document.getElementById('export-projects-csv');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', () => {
+                    try {
+                        const table = document.querySelector('.card .table');
+                        if (!table) return;
+
+                        const theadCells = Array.from(table.querySelectorAll('thead th'));
+                        // Ignora a última coluna (AÇÕES)
+                        const headers = theadCells.slice(0, -1).map(th => th.textContent.trim());
+
+                        const tbody = table.querySelector('#projects-table-body');
+                        const rows = Array.from(tbody.querySelectorAll('tr'))
+                            // Apenas linhas visíveis (respeita filtros de busca)
+                            .filter(tr => window.getComputedStyle(tr).display !== 'none')
+                            // Ignora placeholders como "Carregando projetos..."
+                            .filter(tr => tr.querySelectorAll('td').length >= headers.length)
+                            .map(tr => {
+                                const cells = Array.from(tr.querySelectorAll('td')).slice(0, headers.length);
+                                return cells.map(td => (td.textContent || '').replace(/\s+/g, ' ').trim());
+                            });
+
+                        // Função para escapear valores no CSV (Excel/pt-BR friendly)
+                        const sep = ';';
+                        const escapeCSV = (val) => '"' + String(val).replaceAll('"', '""') + '"';
+
+                        const lines = [];
+                        lines.push(headers.map(escapeCSV).join(sep));
+                        rows.forEach(r => lines.push(r.map(escapeCSV).join(sep)));
+
+                        // Adiciona BOM para Excel reconhecer UTF-8 corretamente
+                        const csvContent = '\uFEFF' + lines.join('\r\n');
+
+                        const now = new Date();
+                        const pad = (n) => String(n).padStart(2, '0');
+                        const filename = `projetos_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}.csv`;
+
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    } catch (err) {
+                        console.error('Falha ao exportar CSV de projetos:', err);
+                        alert('Não foi possível exportar os projetos. Tente novamente.');
+                    }
+                });
             }
         });
-
-        // Formulário de cadastro de projeto
-        const projectForm = document.querySelector('.project-form');
-        if (projectForm) {
-            projectForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                alert('Projeto cadastrado com sucesso!');
-                projectForm.reset();
-            });
-        }
     </script>
 </body>
 </html>
