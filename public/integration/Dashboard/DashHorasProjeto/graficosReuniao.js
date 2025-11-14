@@ -21,47 +21,79 @@ function ddmmyyyy(date){
 }
 
 function normalize(str){
-  return (str||'').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+  // Normaliza e remove diacríticos. Usa propriedade Unicode quando disponível; fallback para intervalo combinante.
+  const base = (str||'').toString().trim().toLowerCase().normalize('NFD');
+  // Alguns navegadores já suportam \p{Diacritic}; caso contrário usar regex clássico
+  try {
+    return base.replace(/\p{Diacritic}/gu,'');
+  } catch {
+    return base.replace(/[\u0300-\u036f]/g,'');
+  }
+}
+
+// Calcula alocação (total e horas de reunião) seguindo mesma lógica dos KPIs
+function calculateAllocation(apontamentos){
+  let totalHoras = 0;
+  let reuniaoHoras = 0;
+  for (const a of apontamentos){
+    const horas = Number(a.horasFeita ?? a.horas ?? 0);
+    totalHoras += horas;
+    const acaoNorm = normalize(a.acao);
+    // Critérios de reunião (amplo): qualquer ocorrência de 'reuni' captura 'reuniao', 'reunioes', 'reuni', etc.
+    if (acaoNorm.includes('reuni')) {
+      reuniaoHoras += horas;
+    }
+  }
+  return { totalHoras, reuniaoHoras };
 }
 
 async function fetchApontamentos(gerenteId, ini, fim){
   const qs = `?dataInicio=${encodeURIComponent(ini)}&dataFim=${encodeURIComponent(fim)}`;
   const endpoint = `/apontamento-horas/gerente/${gerenteId}${qs}`;
-  const data = await get(endpoint, { 'User-Agent': 'trackpoint-frontend' });
-  return Array.isArray(data)? data : [];
+  try {
+    const data = await get(endpoint, { 'User-Agent': 'trackpoint-frontend' });
+    return Array.isArray(data)? data : [];
+  } catch(e){
+    if (typeof e?.message === 'string' && e.message.includes('[404]')) {
+      console.info('fetchApontamentos (reuniões): mês sem apontamentos (404) para', endpoint);
+      return [];
+    }
+    throw e;
+  }
 }
 
+// Percentual calculado diretamente da alocação
 function calcPctReuniao(apont){
-  let total=0, reuniao=0;
-  for(const a of apont){
-    const horas = Number(a.horasFeita ?? a.horas ?? 0);
-    total += horas;
-    const act = normalize(a.acao);
-    if (act.includes('reuniao')) reuniao += horas;
-  }
-  return total>0 ? (reuniao/total)*100 : 0;
+  const { totalHoras, reuniaoHoras } = calculateAllocation(apont);
+  return totalHoras > 0 ? (reuniaoHoras / totalHoras) * 100 : 0;
 }
 
 function buildBarChart(container, atualPct, anteriorPct){
   if(!container) return;
-  const maxPct = Math.max(atualPct, anteriorPct, 100); // limitar escala a 100%
-  const toHeight = v => (maxPct === 0 ? 0 : (v / maxPct) * 100);
+  // Escala fixa em 100%. Cap valores fora do intervalo.
+  const clamp = v => Math.max(0, Math.min(100, v));
+  const hAnterior = clamp(anteriorPct);
+  const hAtual = clamp(atualPct);
   container.innerHTML = `
-    <div style="display:flex;align-items:end;gap:1rem;width:100%;height:220px;">
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
-        <div style="width:55%;background:linear-gradient(135deg,#64748b,#1e293b);border-radius:6px 6px 0 0;position:relative;height:${toHeight(anteriorPct)}%;min-height:4px;transition:.4s;">
-          <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:.75rem;font-weight:600;color:#334155;">${anteriorPct.toFixed(0)}%</span>
+    <div style="display:flex;align-items:flex-end;gap:1.25rem;width:100%;height:220px;padding:4px 2px;box-sizing:border-box;">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+        <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+          <div style="margin:0 auto;width:55%;background:linear-gradient(135deg,#64748b,#1e293b);border-radius:6px 6px 0 0;position:relative;height:${hAnterior === 0 ? 4 : hAnterior}%;transition:height .6s cubic-bezier(.4,.2,.2,1);">
+            <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:600;color:#334155;">${hAnterior.toFixed(0)}%</span>
+          </div>
         </div>
-        <span style="margin-top:6px;font-size:.7rem;letter-spacing:.5px;color:#475569;font-weight:500;">MÊS ANTERIOR</span>
+        <span style="margin-top:8px;font-size:.65rem;letter-spacing:.5px;color:#475569;font-weight:500;">MÊS ANTERIOR</span>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;">
-        <div style="width:55%;background:linear-gradient(135deg,#0ea5e9,#0369a1);border-radius:6px 6px 0 0;position:relative;height:${toHeight(atualPct)}%;min-height:4px;transition:.4s;">
-          <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:.75rem;font-weight:600;color:#075985;">${atualPct.toFixed(0)}%</span>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+        <div style="flex:1;display:flex;align-items:flex-end;width:100%;">
+          <div style="margin:0 auto;width:55%;background:linear-gradient(135deg,#0ea5e9,#0369a1);border-radius:6px 6px 0 0;position:relative;height:${hAtual === 0 ? 4 : hAtual}%;transition:height .6s cubic-bezier(.4,.2,.2,1);">
+            <span style="position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:600;color:#075985;">${hAtual.toFixed(0)}%</span>
+          </div>
         </div>
-        <span style="margin-top:6px;font-size:.7rem;letter-spacing:.5px;color:#475569;font-weight:500;">MÊS ATUAL</span>
+        <span style="margin-top:8px;font-size:.65rem;letter-spacing:.5px;color:#475569;font-weight:500;">MÊS ATUAL</span>
       </div>
     </div>
-    <div style="margin-top:0.75rem;font-size:.65rem;color:#64748b;text-align:center;">Percentual de horas em Reuniões comparado ao total de horas apontadas.</div>
+    <div style="margin-top:0.6rem;font-size:.6rem;color:#64748b;text-align:center;">Percentual de horas em Reuniões sobre o total apontado. Altura proporcional ao % (escala 0-100).</div>
   `;
 }
 
@@ -90,13 +122,35 @@ async function initGraficoReuniao(){
   chartContainer.innerHTML = '<div class="chart-placeholder"><i class="fas fa-spinner fa-pulse"></i><p>Carregando...</p></div>';
 
   try {
-    const [apontAtual, apontAnt] = await Promise.all([
-      fetchApontamentos(gerenteId, iniAtual, fimAtual),
-      fetchApontamentos(gerenteId, iniAnt, fimAnt)
-    ]);
+    // Buscar separadamente para garantir que falha em mês anterior não anule mês atual
+    const apontAtual = await fetchApontamentos(gerenteId, iniAtual, fimAtual);
+    let apontAnt = [];
+    try {
+      apontAnt = await fetchApontamentos(gerenteId, iniAnt, fimAnt);
+    } catch(errPrev){
+      console.warn('Mês anterior sem dados ou erro:', errPrev);
+      apontAnt = [];
+    }
     console.log('[Reuniões] qtd atual:', apontAtual.length, 'qtd anterior:', apontAnt.length);
     const pctAtual = calcPctReuniao(apontAtual);
     const pctAnt = calcPctReuniao(apontAnt);
+    // Diagnóstico se houve horas mas nenhuma categorizada como reunião
+    const totalAtual = apontAtual.reduce((acc,a)=> acc + (Number(a.horasFeita ?? a.horas ?? 0) || 0), 0);
+    const totalAnt = apontAnt.reduce((acc,a)=> acc + (Number(a.horasFeita ?? a.horas ?? 0) || 0), 0);
+    console.debug('[Reuniões] totais calculados:', {
+      totalHorasAtual: totalAtual,
+      reuniaoHorasAtual: calculateAllocation(apontAtual).reuniaoHoras,
+      totalHorasAnterior: totalAnt,
+      reuniaoHorasAnterior: calculateAllocation(apontAnt).reuniaoHoras,
+      pctAtual,
+      pctAnt
+    });
+    if (totalAtual>0 && pctAtual===0){
+      console.debug('[Reuniões] Verificação mês atual - primeiras ações normalizadas:', apontAtual.slice(0,5).map(a=>({acao:a.acao, norm:normalize(a.acao), horas:a.horasFeita??a.horas})));
+    }
+    if (totalAnt>0 && pctAnt===0){
+      console.debug('[Reuniões] Verificação mês anterior - primeiras ações normalizadas:', apontAnt.slice(0,5).map(a=>({acao:a.acao, norm:normalize(a.acao), horas:a.horasFeita??a.horas})));
+    }
     buildBarChart(chartContainer, pctAtual, pctAnt);
   } catch (e){
     console.error('Erro gráfico reuniões:', e);

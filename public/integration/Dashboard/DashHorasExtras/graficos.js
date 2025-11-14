@@ -15,13 +15,25 @@ function loadChartJs() {
 // Tenta obter o id do usuário logado do localStorage, senão usa fallback
 function getFuncionarioId() {
 	try {
-		const raw = localStorage.getItem('user') || localStorage.getItem('usuario');
+		const raw = localStorage.getItem('usuarioLogado') || localStorage.getItem('user') || localStorage.getItem('usuario');
 		if (raw) {
 			const u = JSON.parse(raw);
 			return u?.id || u?.usuario?.id || 1;
 		}
 	} catch {}
 	return 1; // ajuste conforme seu app
+}
+
+// Tenta obter o id do gerente (usuário logado)
+function getGerenteId() {
+    try {
+        const raw = localStorage.getItem('usuarioLogado') || localStorage.getItem('user') || localStorage.getItem('usuario');
+        if (raw) {
+            const u = JSON.parse(raw);
+            return u?.id || u?.usuario?.id || 1;
+        }
+    } catch {}
+    return 1;
 }
 
 // Helpers
@@ -152,6 +164,19 @@ let chartRanking = null;
 async function fetchProjetosDoFuncionario(funcionarioId) {
 	const url = `/projetos/funcionario/${funcionarioId}?status=ANDAMENTO`;
 	return await get(url);
+}
+
+// Busca projetos do gerente (mesma rota de projetos do usuário logado),
+// depois filtra para garantir que o usuário é gerente no projeto.
+async function fetchProjetosDoGerente(gerenteId) {
+	try {
+		const projetos = await get(`/projetos/funcionario/${gerenteId}?status=ANDAMENTO`);
+		if (!Array.isArray(projetos)) return [];
+		return projetos.filter(p => Array.isArray(p.gerentes) && p.gerentes.some(g => Number(g.id) === Number(gerenteId)));
+	} catch (e) {
+		console.warn('Falha ao buscar projetos do gerente:', e);
+		return [];
+	}
 }
 
 async function fetchRankingPorProjeto(projetoId) {
@@ -538,7 +563,15 @@ async function fetchUsuarioIdsDoGerente(gerenteId, ano) {
 			const id = it.projeto?.usuarios?.[0]?.id ?? it.usuarioId ?? it.usuario?.id;
 			if (id) ids.add(id);
 		});
-		return [...ids];
+		const result = [...ids];
+		if (result.length > 0) return result;
+		// Fallback: buscar pelos projetos geridos e coletar os usuários vinculados
+		const projetosGer = await fetchProjetosDoGerente(gerenteId);
+		const idsFromProjects = new Set();
+		projetosGer.forEach(p => {
+			(p.usuarios || []).forEach(u => { if (u?.id) idsFromProjects.add(Number(u.id)); });
+		});
+		return [...idsFromProjects];
 	} catch (e) {
 		console.warn('Falha ao buscar usuários do gerente:', e);
 		return [];
@@ -612,7 +645,12 @@ async function fetchProjetoIdsDoGerente(gerenteId, ano) {
 			const pid = it?.projeto?.id ?? it?.projetoId ?? it?.idProjeto;
 			if (pid != null) ids.add(Number(pid));
 		});
-		return ids; // Set<number>
+		if (ids.size > 0) return ids; // Set<number>
+		// Fallback: coletar ids a partir dos projetos do gerente
+		const projetosGer = await fetchProjetosDoGerente(gerenteId);
+		const set2 = new Set();
+		projetosGer.forEach(p => { if (p?.id != null) set2.add(Number(p.id)); });
+		return set2;
 	} catch (e) {
 		console.warn('Falha ao buscar projetos do gerente:', e);
 		return new Set();
@@ -632,7 +670,7 @@ async function renderDesvioPlanejadoRealizado(container) {
 	// 3) Parâmetros (ano atual)
 	const now = new Date();
 	const ano = now.getFullYear();
-	const gerenteId = 2; // ajuste se necessário
+	const gerenteId = getGerenteId(); // id do usuário logado (gerente)
 	const nomesExtFull = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 	// 4) Usuários e Projetos do gerente
@@ -826,7 +864,7 @@ async function renderComparacaoAnual(container) {
 	// Parâmetros iniciais
 	let baseYear = new Date().getFullYear();
 	let years = [baseYear - 1, baseYear];
-	const gerenteId = 2; // ajuste conforme necessário
+	const gerenteId = getGerenteId(); // id do usuário logado (gerente)
 
 	// Utilitário: coleta totais mensais de horas extras para um ano
 	async function collectYearData(year) {

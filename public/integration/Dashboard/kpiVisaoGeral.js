@@ -9,12 +9,81 @@ async function carregarHorasMensais(gerenteId) {
     inicio
   )}&dataFim=${encodeURIComponent(fim)}`;
 
+  // Log sempre visível para facilitar debug
+  console.log("[HorasMensais] Endpoint relativo:", endpoint);
+
   try {
     const apontamentos = await get(endpoint);
-    const totalHoras = apontamentos.reduce(
-      (acc, item) => acc + (item.horasFeita || 0),
-      0
-    );
+
+    // Garantir array
+    const lista = Array.isArray(apontamentos) ? apontamentos : [];
+
+    // Função para normalizar horasFeita (aceita number ou "HH:MM:SS")
+    function normalizarHoras(h) {
+      if (h == null) return 0;
+      if (typeof h === "number") return h; // já em horas decimais
+      if (typeof h === "string") {
+        // formatos possíveis: "10:00:00" ou "10" ou "10.5"
+        if (/^\d{1,2}:\d{2}:\d{2}$/.test(h)) {
+          const [hor, min, seg] = h.split(":" ).map(n => parseInt(n,10));
+          return hor + min/60 + seg/3600;
+        }
+        const f = parseFloat(h);
+        return isNaN(f) ? 0 : f;
+      }
+      return 0;
+    }
+
+    // Deduplicar registros potencialmente repetidos (por id se existir; senão chave composta)
+    const mapa = new Map();
+    for (const item of lista) {
+      const chaveId = item.id || item.apontamentoId;
+      const chaveGenerica = chaveId || [item.data || item.dia, item.projetoId, item.acao, item.horasFeita].join("|#|");
+      if (!mapa.has(chaveGenerica)) {
+        mapa.set(chaveGenerica, item);
+      }
+    }
+    const unicos = Array.from(mapa.values());
+
+    // Estratégia de agrupamento por dia para evitar somar duplicações de mesma jornada:
+    // Se vários registros do MESMO dia têm exatamente o MESMO valor de horasFeita normalizado,
+    // assumimos que são "vistas" diferentes (por acao) da mesma carga de trabalho e contamos apenas uma vez.
+    // Caso os valores sejam diferentes, somamos (pois provavelmente são fatias distintas do dia).
+
+    function extrairDia(obj) {
+      return obj.data || obj.dia || obj.dataApontamento || obj.dataRegistro || "SEM_DIA";
+    }
+
+    const gruposPorDia = new Map();
+    for (const item of unicos) {
+      const dia = extrairDia(item);
+      const horasNorm = normalizarHoras(item.horasFeita);
+      if (!gruposPorDia.has(dia)) {
+        gruposPorDia.set(dia, { valores: [], raw: [] });
+      }
+      const g = gruposPorDia.get(dia);
+      g.valores.push(horasNorm);
+      g.raw.push(item);
+    }
+
+    let totalHoras = 0;
+    const resumoDias = [];
+    for (const [dia, dados] of gruposPorDia.entries()) {
+      const setValores = new Set(dados.valores);
+      const horasDia = setValores.size === 1 ? [...setValores][0] : dados.valores.reduce((a,b)=>a+b,0);
+      totalHoras += horasDia;
+      resumoDias.push({ dia, registros: dados.raw.length, valores: dados.valores, horasDiaCalculada: horasDia });
+    }
+
+    // Logs de debug sempre (remover quando estabilizar)
+    console.group("Debug Horas Mensais");
+    console.log("Registros recebidos (raw):", lista.length, lista);
+    console.log("Registros únicos (por chave):", unicos.length, unicos);
+    console.table(unicos.map(u => ({ id: u.id || u.apontamentoId, acao: u.acao, horasFeita: u.horasFeita, dia: extrairDia(u) })));
+    console.log("Resumo por dia (agrupamento):");
+    console.table(resumoDias);
+    console.log("Total horas após agrupamento:", totalHoras);
+    console.groupEnd();
 
     // Salvar horas anteriores
     const ultimaHora = parseFloat(localStorage.getItem("ultimaHoraMensal")) || 0;
@@ -37,9 +106,11 @@ function atualizarMetricas(totalHoras, percentual) {
   const arrow = document.querySelector(".metric-change i");
 
   // Converter total para formato HH:MM:SS
-  const horas = Math.floor(totalHoras);
-  const minutos = Math.round((totalHoras - horas) * 60);
-  const formatado = `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:00`;
+  const horasInt = Math.floor(totalHoras);
+  const minutosTotal = Math.round((totalHoras - horasInt) * 60);
+  const horasFormat = String(horasInt).padStart(2, "0");
+  const minutosFormat = String(minutosTotal).padStart(2, "0");
+  const formatado = `${horasFormat}:${minutosFormat}:00`;
 
   metricValue.textContent = formatado;
 
