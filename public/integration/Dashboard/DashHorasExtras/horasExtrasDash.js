@@ -8,9 +8,21 @@ const parseHHMMSStoHours = (hhmmss) => {
     return Number.isFinite(hours) ? hours : 0;
 };
 
+// Pega o id do usuário logado (gerente)
+function getGerenteId() {
+    try {
+        const raw = localStorage.getItem('usuarioLogado') || localStorage.getItem('user') || localStorage.getItem('usuario');
+        if (raw) {
+            const u = JSON.parse(raw);
+            return u?.id || u?.usuario?.id || 1;
+        }
+    } catch {}
+    return 1;
+}
+
 async function loadKpiPlanejadasVsExecutadas() {
     const diasUteisMes = 22; // dias úteis fixos
-    const gerenteId = 2; // ajuste conforme necessário
+    const gerenteId = getGerenteId(); // id do usuário logado
 
     // Datas do mês atual
     const now = new Date();
@@ -121,7 +133,7 @@ async function loadKpiPlanejadasVsExecutadas() {
 // Ajuste: usar total de horas extras do backend
 async function loadKpiHorasExtras() {
     const diasUteisMes = 22; // dias úteis fixos
-    const gerenteId = 2; // ajuste conforme necessário
+    const gerenteId = getGerenteId(); // id do usuário logado
 
     // Datas do mês atual
     const now = new Date();
@@ -220,7 +232,7 @@ async function loadKpiHorasExtras() {
 
 async function loadKpiMediaHorasExtrasPorColaborador() {
     const diasUteisMes = 22; // dias úteis fixos
-    const gerenteId = 2; // ajuste conforme necessário
+    const gerenteId = getGerenteId(); // id do usuário logado
 
     // Datas do mês atual
     const now = new Date();

@@ -81,8 +81,17 @@ function setKpiChange(card, percent) {
 async function fetchApontamentos(gerenteId, ini, fim) {
 	const qs = `?dataInicio=${encodeURIComponent(ini)}&dataFim=${encodeURIComponent(fim)}`;
 	const endpoint = `/apontamento-horas/gerente/${gerenteId}${qs}`;
-	const data = await get(endpoint, { 'User-Agent': 'trackpoint-frontend' });
-	return Array.isArray(data) ? data : [];
+	try {
+		const data = await get(endpoint, { 'User-Agent': 'trackpoint-frontend' });
+		return Array.isArray(data) ? data : [];
+	} catch (e) {
+		// Tratar 404 como ausência de apontamentos (retorna lista vazia)
+		if (typeof e?.message === 'string' && e.message.includes('[404]')) {
+			console.info('fetchApontamentos: mês sem apontamentos (404) para', endpoint);
+			return [];
+		}
+		throw e;
+	}
 }
 
 function normalizeAcao(str) {
@@ -226,9 +235,20 @@ async function initKpis() {
 			reuniaoPctPrev = (prevAlloc.reuniaoHoras / prevAlloc.totalHoras) * 100;
 			devPrevHasBase = true;
 			reuniaoPrevHasBase = true;
+		} else {
+			// Sem horas => tratar como 0% base existente para exibir variação em pp
+			devPctPrev = 0;
+			reuniaoPctPrev = 0;
+			devPrevHasBase = true;
+			reuniaoPrevHasBase = true;
 		}
 	} catch (e) {
 		console.warn('Falha ao buscar apontamentos do mês anterior:', e);
+		// Em erro (inclui 404 já convertido para [] antes), garantir base 0
+		devPctPrev = 0;
+		reuniaoPctPrev = 0;
+		devPrevHasBase = true;
+		reuniaoPrevHasBase = true;
 	}
 
 	const devCard = findCardByTitleContains('% DE ALOCAÇÃO EM DESENVOLVIMENTO');
