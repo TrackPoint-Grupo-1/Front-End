@@ -14,6 +14,14 @@
   margin-bottom: 20px;
 }
 
+.search-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .search-container {
   margin-bottom: 20px;
 }
@@ -222,6 +230,11 @@
 @media (max-width: 768px) {
   .container-relatorios {
     padding: 10px;
+  }
+  
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
   }
   
   .search-input-group {

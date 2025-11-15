@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     document.getElementById('search-btn').addEventListener('click', searchReports);
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) exportBtn.addEventListener('click', exportPontosEntreDatas);
 
     // Eventos das abas
     document.getElementById('hours-tab').addEventListener('click', () => switchTab('hours'));
@@ -43,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const day = String(today.getDate()).padStart(2, '0');
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const year = today.getFullYear();
-    const formattedDate = `${day}/${month}/${year}`;
-    document.getElementById('date-input').value = formattedDate;
+    const formattedDate = `${day}/${month}/${year}`; // dd/mm/aaaa (formato interno)
+    setDateInputValue(document.getElementById('date-input'), formattedDate);
     selectedDate = formattedDate;
     
     console.log('Data inicial definida:', selectedDate);
@@ -68,7 +70,7 @@ function switchTab(tab) {
 // --------------------------------------------
 async function searchReports() {
     const dateInput = document.getElementById('date-input');
-    selectedDate = dateInput.value;
+    selectedDate = readDateInputValue(dateInput); // sempre retorna dd/mm/aaaa
     console.log('Data selecionada:', selectedDate);
     
     if (!selectedDate) {
@@ -672,3 +674,166 @@ async function criarPontosTeste() {
 
 // Torna a função global para ser chamada pelo onclick
 window.criarPontosTeste = criarPontosTeste;
+
+// --------------------------------------------
+// Exportar pontos entre datas (CSV)
+// --------------------------------------------
+function isoParaBR(str) {
+    // yyyy-mm-dd -> dd/mm/yyyy
+    if (!str || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return '';
+    const [a, m, d] = str.split('-');
+    return `${d}/${m}/${a}`;
+}
+
+function brParaISO(str) {
+    // dd/mm/yyyy -> yyyy-mm-dd
+    if (!str || !/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return '';
+    const [d, m, a] = str.split('/');
+    return `${a}-${m}-${d}`;
+}
+
+function readDateInputValue(inputEl) {
+    if (!inputEl) return '';
+    const val = inputEl.value?.trim() || '';
+    // Se o input for type=date, valor vem como yyyy-mm-dd
+    if (inputEl.type === 'date') {
+        return isoParaBR(val);
+    }
+    // Caso contrário, assume dd/mm/yyyy
+    return val;
+}
+
+function setDateInputValue(inputEl, valueBR) {
+    // valueBR deve ser dd/mm/yyyy
+    if (!inputEl) return;
+    if (inputEl.type === 'date') {
+        inputEl.value = brParaISO(valueBR);
+    } else {
+        inputEl.value = valueBR;
+    }
+}
+
+function ehDataBRValida(str) {
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return false;
+    const [d, m, a] = str.split('/').map(Number);
+    const dt = new Date(a, m - 1, d);
+    return dt.getFullYear() === a && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+
+function dataBRParaDate(str) {
+    const [d, m, a] = str.split('/').map(Number);
+    return new Date(a, m - 1, d);
+}
+
+function toCSV(rows, delimiter = ';') {
+    const escapeCell = (val) => {
+        if (val == null) return '';
+        const str = String(val).replace(/\r?\n|\r/g, ' ');
+        const needsQuote = str.includes(delimiter) || str.includes('"');
+        const escaped = str.replace(/"/g, '""');
+        return needsQuote ? `"${escaped}"` : escaped;
+    };
+    return rows.map(r => r.map(escapeCell).join(delimiter)).join('\r\n');
+}
+
+async function exportPontosEntreDatas() {
+    try {
+        const inicioEl = document.getElementById('start-date');
+        const fimEl = document.getElementById('end-date');
+        const dataInicio = readDateInputValue(inicioEl); // dd/mm/aaaa
+        const dataFim = readDateInputValue(fimEl); // dd/mm/aaaa
+
+        if (!usuarioLogado || !usuarioLogado.id) {
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = '/login';
+            return;
+        }
+
+        if (!dataInicio || !dataFim) {
+            alert('Informe a data inicial e a data final no formato DD/MM/AAAA.');
+            return;
+        }
+        if (!ehDataBRValida(dataInicio) || !ehDataBRValida(dataFim)) {
+            alert('Uma ou mais datas estão inválidas. Use o formato DD/MM/AAAA.');
+            return;
+        }
+
+        const dIni = dataBRParaDate(dataInicio);
+        const dFim = dataBRParaDate(dataFim);
+        if (dIni > dFim) {
+            alert('A data inicial não pode ser maior que a data final.');
+            return;
+        }
+
+        const endpoint = `/pontos/${usuarioLogado.id}/periodo?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
+        console.log('Export endpoint:', endpoint);
+        let resp;
+        try {
+            resp = await get(endpoint, { 'User-Agent': 'trackpoint-frontend' });
+        } catch (e) {
+            // Alguns backends podem responder 404 quando não há dados
+            if (String(e.message || '').includes('404')) {
+                alert('Nenhum ponto encontrado no período informado.');
+                return;
+            }
+            throw e;
+        }
+
+        let lista = [];
+        if (Array.isArray(resp)) {
+            lista = resp;
+        } else if (resp && typeof resp === 'object') {
+            // Tenta extrair lista em diferentes chaves usuais
+            lista = resp.listaHoras || resp.lista || resp.pontos || resp.itens || [];
+        }
+
+        if (!lista || lista.length === 0) {
+            alert('Nenhum ponto encontrado no período informado.');
+            return;
+        }
+
+        // Ordena por data/hora ascendente, se possível
+        lista.sort((a, b) => {
+            const ha = a.horario || a.dataHora || a.data || a.hora;
+            const hb = b.horario || b.dataHora || b.data || b.hora;
+            const ta = ha ? new Date(ha).getTime() : 0;
+            const tb = hb ? new Date(hb).getTime() : 0;
+            return ta - tb;
+        });
+
+        const header = ['Data', 'Hora', 'Tipo', 'Manual', 'Localidade', 'Observações', 'Turno'];
+        const rows = [header];
+
+        const formatDate = (dt) => dt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const formatTime = (dt) => dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' });
+
+        for (const p of lista) {
+            const rawDate = p.horario || p.dataHora || (p.data && p.hora ? `${p.data}T${p.hora}` : null) || p.data || null;
+            const dt = rawDate ? new Date(rawDate) : null;
+            const dataStr = dt ? formatDate(dt) : '';
+            const horaStr = dt ? formatTime(dt) : '';
+            const tipo = p.tipo || p.acao || '-';
+            const manual = typeof p.manual === 'boolean' ? (p.manual ? 'Sim' : 'Não') : (p.manual === 1 ? 'Sim' : (p.manual === 0 ? 'Não' : ''));
+            const localidade = p.localidade || p.local || '';
+            const obs = p.observacoes || p.justificativa || p.obs || '';
+            const turno = p.turno || '';
+            rows.push([dataStr, horaStr, tipo, manual, localidade, obs, turno]);
+        }
+
+        const csv = '\uFEFF' + toCSV(rows, ';'); // BOM para Excel/PT-BR
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const safeStart = dataInicio.replaceAll('/', '-');
+        const safeEnd = dataFim.replaceAll('/', '-');
+        a.href = url;
+        a.download = `pontos_${safeStart}_a_${safeEnd}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Erro ao exportar pontos:', error);
+        alert('Erro ao exportar pontos. Tente novamente.');
+    }
+}
