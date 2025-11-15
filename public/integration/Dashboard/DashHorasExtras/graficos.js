@@ -254,7 +254,9 @@ async function renderRanking(container) {
 	}
 
 	// 4) Montar select
+	let currentRankingProjetoId = null;
 	const select = buildProjetoSelect(cardEl, projetos, async (projId) => {
+		currentRankingProjetoId = Number(projId);
 		await updateChartForProject(projId, projetos.find(p => p.id === projId)?.nome || `Projeto ${projId}`);
 		await updateTableForProject(projId); // sincroniza a tabela
 	});
@@ -262,6 +264,7 @@ async function renderRanking(container) {
 	// 5) Render inicial (primeiro projeto)
 	const initialProj = projetos[0];
 	if (select) select.value = String(initialProj.id);
+	currentRankingProjetoId = Number(initialProj.id);
 	await updateChartForProject(initialProj.id, initialProj.nome);
 	await updateTableForProject(initialProj.id); // render inicial da tabela
 
@@ -269,12 +272,16 @@ async function renderRanking(container) {
 	attachExport(canvas, cardEl);
 
 	async function updateChartForProject(projetoId, projetoNome) {
+		const reqId = Number(projetoId);
 		let ranking = [];
 		try {
 			ranking = await fetchRankingPorProjeto(projetoId);
 		} catch (e) {
 			console.error('Erro buscando ranking de horas extras:', e);
 		}
+
+		// Evita aplicar resposta atrasada
+		if (Number(currentRankingProjetoId) !== reqId) return;
 
 		if (!Array.isArray(ranking)) ranking = [];
 
@@ -344,6 +351,7 @@ async function renderRanking(container) {
 	}
 
 	async function updateTableForProject(projetoId) {
+		const reqId = Number(projetoId);
 		const tbody = document.getElementById('table_limite_horas_extras_body');
 		if (!tbody) return;
 
@@ -356,6 +364,9 @@ async function renderRanking(container) {
 		} catch (e) {
 			console.error('Erro buscando ranking de horas extras (tabela):', e);
 		}
+
+		// Evita aplicar resposta atrasada
+		if (Number(currentRankingProjetoId) !== reqId) return;
 		if (!Array.isArray(ranking)) ranking = [];
 
 		// Ordena por horas extras desc
@@ -458,83 +469,101 @@ async function renderDistribuicaoPorProjeto(container) {
 		return;
 	}
 
-	// 4) Para cada projeto, buscar o ranking e somar as horas extras do projeto
-	let dataset = [];
-	try {
-		const results = await Promise.all(projetos.map(async (p) => {
-			try {
-				const ranking = await fetchRankingPorProjeto(p.id);
-				const totalExtras = Array.isArray(ranking) ? ranking.reduce((s, item) => s + (pickValue(item) || 0), 0) : 0;
-				return { id: p.id, nome: p.nome, totalExtras };
-			} catch (e) {
-				console.warn(`Falha ao buscar ranking para projeto ${p.id}:`, e);
-				return { id: p.id, nome: p.nome, totalExtras: 0 };
-			}
-		}));
-		dataset = results.filter(r => r.totalExtras > 0);
-	} catch (e) {
-		console.error('Erro montando distribuição por projeto:', e);
-	}
-
-	if (dataset.length === 0) {
-		container.innerHTML = `<div class="chart-placeholder"><i class="fas fa-circle-info"></i><p>Sem horas extras registradas nos projetos.</p></div>`;
-		return;
-	}
-
-	// 5) Preparar dados para o gráfico
-	const labels = dataset.map(d => d.nome);
-	const data = dataset.map(d => d.totalExtras);
-
-	// Gerar cores
-	const palette = ['#0ea5e9','#22c55e','#f59e0b','#ef4444','#8b5cf6','#14b8a6','#f43f5e','#84cc16','#eab308','#06b6d4'];
-	const colors = labels.map((_, i) => palette[i % palette.length]);
-
-	// 6) Renderizar Doughnut
-	const chart = new window.Chart(ctx, {
-		type: 'doughnut',
-		data: {
-			labels,
-			datasets: [{
-				data,
-				backgroundColor: colors,
-				borderWidth: 1,
-				borderColor: '#fff',
-				hoverOffset: 6
-			}]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			plugins: {
-				legend: { position: 'bottom' },
-				title: {
-					display: true,
-					text: 'Distribuição de Horas Extras por Projeto',
-					color: '#0f172a',
-					font: { size: 14, weight: '600' }
-				},
-				tooltip: {
-					callbacks: {
-						label: (ctx) => {
-							const total = ctx.dataset.data.reduce((s, v) => s + v, 0) || 1;
-							const val = Number(ctx.parsed);
-							const pct = ((val / total) * 100).toFixed(1);
-							return ` ${ctx.label}: ${val.toFixed(2)} h (${pct}%)`;
-						}
-					}
-				}
-			}
-		},
-		cutout: '55%'
+	// 4) Montar seletor de projeto no header do card
+	let currentDistribProjetoId = null;
+	const select = buildProjetoSelect(cardEl, projetos, async (projId) => {
+		currentDistribProjetoId = Number(projId);
+		const proj = projetos.find(p => Number(p.id) === Number(projId));
+		await updateChartForProject(projId, proj?.nome || `Projeto ${projId}`);
 	});
 
-	// Ajusta altura do container
-	container.style.height = '320px';
+	// 5) Estado do gráfico
+	let chartDistribuicao = null;
 
-	// 7) Exportar PNG do gráfico
-	attachExport(canvas, cardEl);
+	// 6) Função para atualizar o gráfico por colaboradores do projeto selecionado
+	async function updateChartForProject(projetoId, projetoNome) {
+		const reqId = Number(projetoId);
+		let ranking = [];
+		try {
+			ranking = await fetchRankingPorProjeto(projetoId);
+		} catch (e) {
+			console.error('Erro buscando ranking (distribuição por colaborador):', e);
+		}
+		if (!Array.isArray(ranking)) ranking = [];
 
-	console.log('Distribuição de Horas Extras por Projeto:', dataset);
+		const rows = ranking
+			.map(it => ({ label: pickLabel(it), value: pickValue(it) }))
+			.filter(r => r.value > 0);
+
+		// Evita aplicar resposta atrasada
+		if (Number(currentDistribProjetoId) !== reqId) return;
+
+		const labels = rows.map(r => r.label);
+		const data = rows.map(r => r.value);
+
+		const palette = ['#0ea5e9','#22c55e','#f59e0b','#ef4444','#8b5cf6','#14b8a6','#f43f5e','#84cc16','#eab308','#06b6d4'];
+		const colors = labels.map((_, i) => palette[i % palette.length]);
+
+		if (chartDistribuicao) {
+			chartDistribuicao.data.labels = labels;
+			chartDistribuicao.data.datasets[0].data = data;
+			chartDistribuicao.data.datasets[0].backgroundColor = colors;
+			chartDistribuicao.options.plugins.title.text = rows.length > 0
+				? `Distribuição de Horas Extras por Colaborador – ${projetoNome}`
+				: `Sem horas extras para este projeto`;
+			chartDistribuicao.update();
+		} else {
+			chartDistribuicao = new window.Chart(ctx, {
+				type: 'doughnut',
+				data: {
+					labels,
+					datasets: [{
+						data,
+						backgroundColor: colors,
+						borderWidth: 1,
+						borderColor: '#fff',
+						hoverOffset: 6
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: { position: 'bottom' },
+						title: {
+							display: true,
+							text: rows.length > 0
+								? `Distribuição de Horas Extras por Colaborador – ${projetoNome}`
+								: `Sem horas extras para este projeto`,
+							color: '#0f172a',
+							font: { size: 14, weight: '600' }
+						},
+						tooltip: {
+							callbacks: {
+								label: (ctx) => {
+									const total = ctx.dataset.data.reduce((s, v) => s + v, 0) || 1;
+									const val = Number(ctx.parsed);
+									const pct = ((val / total) * 100).toFixed(1);
+									return ` ${ctx.label}: ${val.toFixed(2)} h (${pct}%)`;
+								}
+							}
+						}
+					},
+					cutout: '55%'
+				}
+			});
+			container.style.height = '320px';
+			attachExport(canvas, cardEl);
+		}
+
+		console.log(`Distribuição por colaborador – projeto ${projetoId}:`, rows);
+	}
+
+	// 7) Render inicial para o primeiro projeto
+	const initialProj = projetos[0];
+	if (select) select.value = String(initialProj.id);
+	currentDistribProjetoId = Number(initialProj.id);
+	await updateChartForProject(initialProj.id, initialProj.nome);
 }
 
 // Helpers de data
@@ -673,154 +702,207 @@ async function renderDesvioPlanejadoRealizado(container) {
 	const gerenteId = getGerenteId(); // id do usuário logado (gerente)
 	const nomesExtFull = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-	// 4) Usuários e Projetos do gerente
-	const usuarioIds = await fetchUsuarioIdsDoGerente(gerenteId, ano);
-	const projetoIdsSet = await fetchProjetoIdsDoGerente(gerenteId, ano);
+	// 4) Buscar projetos do gerente para habilitar seletor
+	let projetosGerente = [];
+	try { projetosGerente = await fetchProjetosDoGerente(gerenteId); } catch {}
 
-	if (!usuarioIds.length) {
-		container.innerHTML = `<div class="chart-placeholder"><i class="fas fa-circle-info"></i><p>Sem usuários vinculados ao gerente para ${ano}.</p></div>`;
-		return;
-	}
-
-	// 5) Montar séries mês a mês (Jan..Dez)
+	// 5) Estado e helpers
+	let planejadas = new Array(12).fill(0);
+	let realizadas = new Array(12).fill(0);
 	const labels = Array.from({ length: 12 }, (_, i) => monthLabelPT(i));
-	const planejadas = new Array(12).fill(0);
-	const realizadas = new Array(12).fill(0);
+	let chart = null;
+	let currentDesvioProjetoId = null; // race-guard
 
-	// Para limitar chamadas, processa em série por mês
-	for (let m = 0; m < 12; m++) {
-		const di = fmtDDMMYYYY(monthStart(ano, m));
-		const df = fmtDDMMYYYY(monthEnd(ano, m));
-
-		// Planejadas (somatório das solicitações de todos os usuários) – apenas se vinculadas a projetos do gerente
-		let somaSolic = 0;
-		await Promise.all(
-			usuarioIds.map(uid => fetchHorasSolicitadasUsuarioMes(uid, di, df, projetoIdsSet).then(v => { somaSolic += (Number(v) || 0); }))
-		);
-		planejadas[m] = Number(somaSolic.toFixed(2));
-
-		// Realizadas (extras efetivas do gerente no mês)
-		const real = await fetchHorasExtrasRealizadasGerenteMes(gerenteId, di, df);
-		realizadas[m] = Number((Number(real) || 0).toFixed(2));
+	// Local: converter HH:MM para horas
+	function timeRangeToHours(hDe, hAte) {
+		const [h1 = 0, m1 = 0] = String(hDe || '00:00').split(':').map(n => Number(n) || 0);
+		const [h2 = 0, m2 = 0] = String(hAte || '00:00').split(':').map(n => Number(n) || 0);
+		return Math.max(0, (h2 + m2/60) - (h1 + m1/60));
 	}
 
-	// 6) Render gráfico (área)
-	const chart = new window.Chart(ctx, {
-		type: 'line',
-		data: {
-			labels,
-			datasets: [
-				{
-					label: 'Planejadas (Solicitadas) - h',
-					data: planejadas,
-					tension: 0.3,
-					borderColor: '#0ea5e9',
-					backgroundColor: 'rgba(14,165,233,0.25)',
-					fill: true,
-					pointRadius: 3
-				},
-				{
-					label: 'Realizadas - h',
-					data: realizadas,
-					tension: 0.3,
-					borderColor: '#059669',
-					backgroundColor: 'rgba(5,150,105,0.25)',
-					fill: true,
-					pointRadius: 3
-				}
-			]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			plugins: {
-				legend: { position: 'bottom' },
-				title: {
-					display: true,
-					text: `Desvio entre Horas Extras Planejadas vs. Realizadas (${ano})`,
-					color: '#0f172a',
-					font: { size: 14, weight: '600' }
-				},
-				tooltip: {
-					mode: 'index',
-					intersect: false,
-					callbacks: {
-						label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h`
-					}
-				}
-			},
-			scales: {
-				y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'Horas (h)' } },
-				x: { grid: { display: false } }
+	// Soma extras realizadas do projeto no período para um conjunto de usuários
+	async function fetchHorasExtrasRealizadasProjetoMes(projetoId, usuarioIds, dataInicio, dataFim) {
+		let total = 0;
+		await Promise.all((usuarioIds || []).map(async uid => {
+			try {
+				const resp = await get(`/horas-extras/listar-horas/${uid}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`);
+				const lista = Array.isArray(resp?.listaHoras) ? resp.listaHoras : [];
+				lista.forEach(h => {
+					const projId = h?.codigoProjeto ?? h?.projeto?.id ?? h?.projetoId ?? h?.idProjeto;
+					if (Number(projId) !== Number(projetoId)) return;
+					total += timeRangeToHours(h?.horasDe, h?.horasAte);
+				});
+			} catch {}
+		}));
+		return Number(total.toFixed(2));
+	}
+
+	// Calcula séries para um projeto específico; se null, agrega todos
+	async function computeSeries(projetoId) {
+		const reqId = projetoId == null ? 'ALL' : Number(projetoId);
+		currentDesvioProjetoId = reqId;
+
+		// Coleta usuários para o escopo
+		let usuarioIds = [];
+		if (projetoId != null && Array.isArray(projetosGerente)) {
+			const proj = projetosGerente.find(p => Number(p.id) === Number(projetoId));
+			usuarioIds = (proj?.usuarios || []).map(u => u?.id).filter(Boolean);
+			// fallback se vazio
+			if (!usuarioIds.length) usuarioIds = await fetchUsuarioIdsDoGerente(gerenteId, ano);
+		} else {
+			usuarioIds = await fetchUsuarioIdsDoGerente(gerenteId, ano);
+		}
+		if (!usuarioIds.length) return { ok: false };
+
+		// allowed projects set
+		let allowedSet = null;
+		if (projetoId != null) {
+			allowedSet = new Set([Number(projetoId)]);
+		} else {
+			allowedSet = await fetchProjetoIdsDoGerente(gerenteId, ano);
+		}
+
+		const pl = new Array(12).fill(0);
+		const rl = new Array(12).fill(0);
+
+		for (let m = 0; m < 12; m++) {
+			const di = fmtDDMMYYYY(monthStart(ano, m));
+			const df = fmtDDMMYYYY(monthEnd(ano, m));
+
+			// Planejadas: soma solicitações dos usuários, filtrando por projeto permitido
+			let somaSolic = 0;
+			await Promise.all(
+				usuarioIds.map(uid => fetchHorasSolicitadasUsuarioMes(uid, di, df, allowedSet).then(v => { somaSolic += (Number(v) || 0); }))
+			);
+			pl[m] = Number(somaSolic.toFixed(2));
+
+			// Realizadas
+			if (projetoId != null) {
+				// por projeto selecionado
+				rl[m] = await fetchHorasExtrasRealizadasProjetoMes(projetoId, usuarioIds, di, df);
+			} else {
+				// agregado do gerente (todos projetos)
+				const real = await fetchHorasExtrasRealizadasGerenteMes(gerenteId, di, df);
+				rl[m] = Number((Number(real) || 0).toFixed(2));
 			}
 		}
-	});
 
-	// Altura do container
-	container.style.height = '360px';
+		// Race-guard: confere se seleção mudou
+		if (currentDesvioProjetoId !== reqId) return { ok: false };
 
-	// 7) Badge (mês atual)
-	const mesAtual = now.getMonth();
-	const pl = planejadas[mesAtual] || 0;
-	const rl = realizadas[mesAtual] || 0;
-	// Desvio absoluto: 0/0 => 0%; 0/x => 100%; senão => |x - y|/y*100
-	const diffPct = (pl === 0 && rl === 0) ? 0 : (pl === 0 ? 100 : (Math.abs(rl - pl) / pl) * 100);
-	const badge = cardEl.querySelector('.card-actions span');
-	if (badge) {
-		// Sem sinal no badge (sempre positivo)
-		badge.textContent = `${diffPct.toFixed(1)}% em ${nomesExtFull[mesAtual]} de ${ano}`;
-		// aplica cor
-		setBadgeColor(badge, diffPct);
+		planejadas = pl;
+		realizadas = rl;
+		return { ok: true };
 	}
 
-	// 8) Exportar PNG
-	attachExport(canvas, cardEl);
+	// Cria ou atualiza o gráfico com as séries correntes
+	function renderOrUpdateChart(titleSuffix) {
+		if (chart) {
+			chart.data.labels = labels;
+			chart.data.datasets[0].data = planejadas;
+			chart.data.datasets[1].data = realizadas;
+			chart.options.plugins.title.text = `Desvio entre Horas Extras Planejadas vs. Realizadas ${titleSuffix ? '– ' + titleSuffix : ''} (${ano})`;
+			chart.update();
+			return;
+		}
 
-	// 9) Filtro por mês (se existir botão com ícone de filtro)
+		chart = new window.Chart(ctx, {
+			type: 'line',
+			data: {
+				labels,
+				datasets: [
+					{ label: 'Planejadas (Solicitadas) - h', data: planejadas, tension: 0.3, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.25)', fill: true, pointRadius: 3 },
+					{ label: 'Realizadas - h', data: realizadas, tension: 0.3, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.25)', fill: true, pointRadius: 3 }
+				]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					legend: { position: 'bottom' },
+					title: { display: true, text: `Desvio entre Horas Extras Planejadas vs. Realizadas ${titleSuffix ? '– ' + titleSuffix : ''} (${ano})`, color: '#0f172a', font: { size: 14, weight: '600' } },
+					tooltip: { mode: 'index', intersect: false, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h` } }
+				},
+				scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'Horas (h)' } }, x: { grid: { display: false } } }
+			}
+		});
+
+		container.style.height = '360px';
+		attachExport(canvas, cardEl);
+	}
+
+	// Badge helper
+	function updateBadge(titleSuffix) {
+		const mesAtual = now.getMonth();
+		const pl = planejadas[mesAtual] || 0;
+		const rl = realizadas[mesAtual] || 0;
+		const diffPct = (pl === 0 && rl === 0) ? 0 : (pl === 0 ? 100 : (Math.abs(rl - pl) / pl) * 100);
+		const badge = cardEl.querySelector('.card-actions span');
+		if (badge) {
+			badge.textContent = `${diffPct.toFixed(1)}% em ${nomesExtFull[mesAtual]} de ${ano}`;
+			setBadgeColor(badge, diffPct);
+		}
+	}
+
+	// 6) Seletor de projeto no header (se houver projetos)
 	const actions = cardEl.querySelector('.card-actions');
+	let projetoSelect = null;
+	if (Array.isArray(projetosGerente) && projetosGerente.length > 0 && actions) {
+		projetoSelect = buildProjetoSelect(cardEl, projetosGerente, async (projId) => {
+			const proj = projetosGerente.find(p => Number(p.id) === Number(projId));
+			await computeSeries(Number(projId));
+			renderOrUpdateChart(proj?.nome || `Projeto ${projId}`);
+			updateBadge();
+		});
+	}
+
+	// 7) Render inicial: se há projetos, usa o primeiro; se não, agrega todos
+	if (projetoSelect && projetosGerente.length > 0) {
+		const initial = projetosGerente[0];
+		projetoSelect.value = String(initial.id);
+		await computeSeries(Number(initial.id));
+		renderOrUpdateChart(initial.nome);
+		updateBadge();
+	} else {
+		await computeSeries(null);
+		renderOrUpdateChart('Todos os Projetos');
+		updateBadge();
+	}
+
+	// 8) Filtro por mês (se existir botão com ícone de filtro)
 	const filterBtn = actions?.querySelector('.btn i.fa-filter')?.closest('.btn');
 	if (actions && filterBtn) {
-		// Novo seletor de mês
 		const monthSelect = document.createElement('select');
 		monthSelect.className = 'btn btn-secondary btn-sm';
 		monthSelect.style.minWidth = '120px';
 		monthSelect.style.marginRight = '0.5rem';
-
-		// Opções: Jan..Dez
 		for (let i = 0; i < 12; i++) {
 			const opt = document.createElement('option');
 			opt.value = i;
 			opt.textContent = nomesExtFull[i];
 			monthSelect.appendChild(opt);
 		}
-
-		// Substitui ícone por seletor
 		const icon = filterBtn.querySelector('i');
 		if (icon) {
 			const parent = icon.closest('.btn');
-			parent.innerHTML = ''; // limpa ícone
+			parent.innerHTML = '';
 			parent.appendChild(monthSelect);
 		}
-
-		// Atualiza gráfico e badge ao mudar mês
 		monthSelect.addEventListener('change', async (e) => {
 			const mmIdx = Number(e.target.value);
 			const yyyy = ano;
-
-			// Atualiza gráfico para o mês escolhido
 			chart.data.labels = [monthLabelPT(mmIdx)];
 			chart.data.datasets[0].data = [planejadas[mmIdx]];
 			chart.data.datasets[1].data = [realizadas[mmIdx]];
 			chart.options.plugins.title.text = `Desvio entre Horas Extras Planejadas vs. Realizadas (${nomesExtFull[mmIdx]} de ${yyyy})`;
 			chart.update();
-
-			// Recalcula badge
 			const pct = (planejadas[mmIdx] === 0 && realizadas[mmIdx] === 0)
 				? 0
 				: (planejadas[mmIdx] === 0 ? 100 : (Math.abs(realizadas[mmIdx] - planejadas[mmIdx]) / planejadas[mmIdx]) * 100);
+			const badge = cardEl.querySelector('.card-actions span');
 			if (badge) {
 				badge.textContent = `${pct.toFixed(1)}% em ${nomesExtFull[mmIdx]} de ${yyyy}`;
-				setBadgeColor(badge, pct); // aplica cor
+				setBadgeColor(badge, pct);
 			}
 		});
 	}
@@ -848,6 +930,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	// Novo: Comparação Anual
 	const comparacaoAnualContainer = document.getElementById('chart_comparacao_anual');
 	if (comparacaoAnualContainer) renderComparacaoAnual(comparacaoAnualContainer);
+
+	// Novo: Barras Empilhadas (Normais vs Extras) do mês atual
+	const empilhadasMesContainer = document.getElementById('chart_barras_empilhadas_mes');
+	if (empilhadasMesContainer) renderBarrasEmpilhadasMes(empilhadasMesContainer);
 });
 
 async function renderComparacaoAnual(container) {
@@ -864,10 +950,23 @@ async function renderComparacaoAnual(container) {
 	// Parâmetros iniciais
 	let baseYear = new Date().getFullYear();
 	let years = [baseYear - 1, baseYear];
-	const gerenteId = getGerenteId(); // id do usuário logado (gerente)
+	const gerenteId = getGerenteId();
 
-	// Utilitário: coleta totais mensais de horas extras para um ano
-	async function collectYearData(year) {
+	// Busca projetos do gerente para seletor
+	let projetosGerente = [];
+	try { projetosGerente = await fetchProjetosDoGerente(gerenteId); } catch {}
+
+	// Race guard
+	let currentComparacaoProjetoId = 'ALL'; // 'ALL' ou id numérico
+
+	// Helpers
+	function timeRangeToHours(hDe, hAte) {
+		const [h1 = 0, m1 = 0] = String(hDe || '00:00').split(':').map(n => Number(n) || 0);
+		const [h2 = 0, m2 = 0] = String(hAte || '00:00').split(':').map(n => Number(n) || 0);
+		return Math.max(0, (h2 + m2/60) - (h1 + m1/60));
+	}
+
+	async function collectYearDataAll(year) {
 		const promises = Array.from({ length: 12 }, (_, m) => {
 			const di = fmtDDMMYYYY(monthStart(year, m));
 			const df = fmtDDMMYYYY(monthEnd(year, m));
@@ -877,18 +976,46 @@ async function renderComparacaoAnual(container) {
 		return values.map(v => Number(v || 0));
 	}
 
-	// Coleta dados dos dois anos
-	let seriesA = await collectYearData(years[0]);
-	let seriesB = await collectYearData(years[1]);
+	async function collectYearDataProjeto(year, projetoId) {
+		const proj = projetosGerente.find(p => Number(p.id) === Number(projetoId));
+		const usuarios = (proj?.usuarios || []).map(u => u?.id).filter(Boolean);
+		if (!usuarios.length) return new Array(12).fill(0); // fallback vazio
+		const series = [];
+		for (let m = 0; m < 12; m++) {
+			const di = fmtDDMMYYYY(monthStart(year, m));
+			const df = fmtDDMMYYYY(monthEnd(year, m));
+			let soma = 0;
+			await Promise.all(usuarios.map(async uid => {
+				try {
+					const resp = await get(`/horas-extras/listar-horas/${uid}?dataInicio=${encodeURIComponent(di)}&dataFim=${encodeURIComponent(df)}`);
+					const lista = Array.isArray(resp?.listaHoras) ? resp.listaHoras : [];
+					lista.forEach(h => {
+						const pid = h?.codigoProjeto ?? h?.projeto?.id ?? h?.projetoId ?? h?.idProjeto;
+						if (Number(pid) !== Number(projetoId)) return;
+						soma += timeRangeToHours(h?.horasDe, h?.horasAte);
+					});
+				} catch {}
+			}));
+			series.push(Number(soma.toFixed(2)));
+		}
+		return series;
+	}
+
+	async function collectYearData(year, projetoScope) {
+		if (projetoScope === 'ALL') return collectYearDataAll(year);
+		return collectYearDataProjeto(year, projetoScope);
+	}
 
 	// Labels Jan..Dez
 	const labels = Array.from({ length: 12 }, (_, i) => monthLabelPT(i));
 
-	// Cores
-	const colors = ['#93c5fd', '#3b82f6'];
+	// Carrega séries iniciais (ALL)
+	let seriesA = await collectYearData(years[0], 'ALL');
+	let seriesB = await collectYearData(years[1], 'ALL');
 
-	// Gráfico (barras agrupadas)
-	const chart = new window.Chart(ctx, {
+	// Chart init
+	const colors = ['#93c5fd', '#3b82f6'];
+	let chart = new window.Chart(ctx, {
 		type: 'bar',
 		data: {
 			labels,
@@ -902,36 +1029,42 @@ async function renderComparacaoAnual(container) {
 			maintainAspectRatio: false,
 			plugins: {
 				legend: { position: 'bottom' },
-				title: {
-					display: true,
-					text: 'Comparação da Quantidade de Horas Extras Anual',
-					color: '#0f172a',
-					font: { size: 14, weight: '600' }
-				},
-				tooltip: {
-					mode: 'index',
-					intersect: false,
-					callbacks: {
-						label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h`
-					}
-				}
+				title: { display: true, text: 'Comparação da Quantidade de Horas Extras Anual – Todos os Projetos', color: '#0f172a', font: { size: 14, weight: '600' } },
+				tooltip: { mode: 'index', intersect: false, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h` } }
 			},
-			scales: {
-				x: { grid: { display: false } },
-				y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'Horas (h)' } }
-			}
+			scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'Horas (h)' } } }
 		}
 	});
 
-	// Exportar PNG
 	attachExport(canvas, cardEl);
 
-	// Checkboxes: atualiza labels para os anos e faz toggle de séries
+	// Seletor de projeto
 	const actions = cardEl.querySelector('.card-actions');
+	let projetoSelect = null;
+	if (actions) {
+		projetoSelect = document.createElement('select');
+		projetoSelect.className = 'btn btn-secondary btn-sm';
+		projetoSelect.style.minWidth = '220px';
+		projetoSelect.style.marginRight = '0.5rem';
+		// Opção Todos
+		const optAll = document.createElement('option');
+		optAll.value = 'ALL';
+		optAll.textContent = 'Todos os Projetos';
+		projetoSelect.appendChild(optAll);
+		(projetosGerente || []).forEach(p => {
+			const opt = document.createElement('option');
+			opt.value = String(p.id);
+			opt.textContent = p.nome;
+			projetoSelect.appendChild(opt);
+		});
+		actions.insertBefore(projetoSelect, actions.firstChild);
+		projetoSelect.value = 'ALL';
+	}
+
+	// Checkboxes (toggle séries por ano)
 	const cbs = actions?.querySelectorAll('input[type="checkbox"]') || [];
 	cbs.forEach((cb, idx) => {
 		const label = cb.closest('label');
-		// garante texto com o ano correto
 		if (label) {
 			let txtNode = Array.from(label.childNodes).find(n => n.nodeType === 3);
 			if (txtNode) txtNode.nodeValue = ' ' + String(years[idx] ?? '');
@@ -947,7 +1080,31 @@ async function renderComparacaoAnual(container) {
 		};
 	});
 
-	// Botão Filtrar: define ano base (YYYY) e recarrega os dados (ano-1, ano)
+	async function refreshForProject(projetoScope) {
+		currentComparacaoProjetoId = projetoScope;
+		const localScope = projetoScope; // captura
+		const newSeriesA = await collectYearData(years[0], projetoScope);
+		if (currentComparacaoProjetoId !== localScope) return; // race guard
+		const newSeriesB = await collectYearData(years[1], projetoScope);
+		if (currentComparacaoProjetoId !== localScope) return;
+		seriesA = newSeriesA;
+		seriesB = newSeriesB;
+		chart.data.datasets[0].data = seriesA;
+		chart.data.datasets[1].data = seriesB;
+		const tituloProj = projetoScope === 'ALL'
+			? 'Todos os Projetos'
+			: (projetosGerente.find(p => String(p.id) === String(projetoScope))?.nome || `Projeto ${projetoScope}`);
+		chart.options.plugins.title.text = `Comparação da Quantidade de Horas Extras Anual – ${tituloProj}`;
+		chart.update();
+	}
+
+	if (projetoSelect) {
+		projetoSelect.addEventListener('change', async (e) => {
+			await refreshForProject(e.target.value);
+		});
+	}
+
+	// Botão Filtrar: redefine ano base
 	const filterBtn = actions?.querySelector('.btn i.fa-filter')?.closest('.btn');
 	if (filterBtn) {
 		filterBtn.onclick = null;
@@ -956,22 +1113,13 @@ async function renderComparacaoAnual(container) {
 			if (!val) return;
 			const parsed = parseInt(val, 10);
 			if (isNaN(parsed) || parsed < 2000 || parsed > 2100) return;
-
 			baseYear = parsed;
 			years = [baseYear - 1, baseYear];
-
-			// Recoleta séries
-			seriesA = await collectYearData(years[0]);
-			seriesB = await collectYearData(years[1]);
-
-			// Atualiza datasets e labels/checkboxes
+			// Recarrega dados com escopo atual
+			await refreshForProject(currentComparacaoProjetoId);
+			// Atualiza labels dos datasets e checkboxes
 			chart.data.datasets[0].label = String(years[0]);
 			chart.data.datasets[1].label = String(years[1]);
-			chart.data.datasets[0].data = seriesA;
-			chart.data.datasets[1].data = seriesB;
-			chart.update();
-
-			// Atualiza texto dos checkboxes
 			cbs.forEach((cb, idx) => {
 				const label = cb.closest('label');
 				if (label) {
@@ -980,7 +1128,6 @@ async function renderComparacaoAnual(container) {
 					else label.appendChild(document.createTextNode(' ' + String(years[idx] ?? '')));
 				}
 				cb.dataset.year = String(years[idx] ?? '');
-				// mantém estado atual de checked; apenas reflete visibilidade
 				if (chart.data.datasets[idx]) {
 					chart.data.datasets[idx].hidden = !cb.checked;
 				}
@@ -988,4 +1135,240 @@ async function renderComparacaoAnual(container) {
 			chart.update();
 		});
 	}
+}
+
+// === Barras Empilhadas: Horas Normais (base) x Horas Extras por dia do mês atual ===
+async function renderBarrasEmpilhadasMes(container) {
+	const cardEl = container.closest('.card');
+
+	// Chart.js
+	await loadChartJs();
+
+	// Canvas
+	clearContainer(container);
+	const canvas = ensureCanvas(container);
+	const ctx = canvas.getContext('2d');
+
+	// Parâmetros de período (mês atual)
+	const now = new Date();
+	const ano = now.getFullYear();
+	const mesIdx = now.getMonth();
+	const inicio = monthStart(ano, mesIdx);
+	const fim = monthEnd(ano, mesIdx);
+	const lastDay = fim.getDate();
+	const gerenteId = getGerenteId();
+
+	// Helpers locais
+	const toBR = (d) => fmtDDMMYYYY(d);
+
+	// Busca projetos do gerente e monta selects (Projeto -> Colaborador)
+	let projetosGerente = [];
+	try {
+		projetosGerente = await fetchProjetosDoGerente(gerenteId);
+	} catch (e) {
+		console.warn('Falha ao buscar projetos do gerente para empilhadas:', e);
+	}
+
+	if (!Array.isArray(projetosGerente) || projetosGerente.length === 0) {
+		container.innerHTML = `<div class="chart-placeholder"><i class="fas fa-triangle-exclamation"></i><p>Nenhum projeto em andamento encontrado.</p></div>`;
+		return;
+	}
+
+	// Cria selects no header
+	const actions = cardEl.querySelector('.card-actions');
+	let projetoSelect = actions.querySelector('#empilhadasMesProjetoSelect');
+	if (!projetoSelect) {
+		projetoSelect = document.createElement('select');
+		projetoSelect.id = 'empilhadasMesProjetoSelect';
+		projetoSelect.className = 'btn btn-secondary btn-sm';
+		projetoSelect.style.minWidth = '220px';
+		projetoSelect.style.marginRight = '0.5rem';
+		actions.insertBefore(projetoSelect, actions.firstChild);
+	}
+	projetosGerente.forEach(p => {
+		const opt = document.createElement('option');
+		opt.value = String(p.id);
+		opt.textContent = p.nome;
+		projetoSelect.appendChild(opt);
+	});
+
+	let userSelect = actions.querySelector('#empilhadasMesUserSelect');
+	if (!userSelect) {
+		userSelect = document.createElement('select');
+		userSelect.id = 'empilhadasMesUserSelect';
+		userSelect.className = 'btn btn-secondary btn-sm';
+		userSelect.style.minWidth = '200px';
+		userSelect.style.marginRight = '0.5rem';
+		actions.insertBefore(userSelect, projetoSelect.nextSibling);
+	}
+
+	// util: popula select de usuários do projeto
+	function populateUserSelectForProject(proj) {
+		userSelect.innerHTML = '';
+		const all = document.createElement('option');
+		all.value = 'all';
+		all.textContent = 'Todos';
+		userSelect.appendChild(all);
+		(proj?.usuarios || []).forEach(u => {
+			if (!u) return;
+			const opt = document.createElement('option');
+			opt.value = String(u.id);
+			opt.textContent = u.nome || `Usuário ${u.id}`;
+			userSelect.appendChild(opt);
+		});
+	}
+
+	// Funções para coletar horas por DIA filtrando por projeto/usuário
+	async function fetchApontadoUsuarioDiaProjeto(usuarioId, dataBR, projetoId) {
+		try {
+			const itens = await get(`/apontamento-horas/usuario/${usuarioId}?data=${encodeURIComponent(dataBR)}`);
+			if (!Array.isArray(itens)) return 0;
+			const total = itens.reduce((s, it) => {
+				const pid = it?.projeto?.id ?? it?.projetoId ?? it?.idProjeto;
+				if (Number(pid) !== Number(projetoId)) return s;
+				const v = it?.horas ?? it?.totalHoras ?? it?.quantidade ?? 0;
+				return s + (Number(v) || 0);
+			}, 0);
+			return Number(total.toFixed(2));
+		} catch {
+			return 0;
+		}
+	}
+
+	function timeRangeToHours(hDe, hAte) {
+		const [h1 = 0, m1 = 0] = String(hDe || '00:00').split(':').map(n => Number(n) || 0);
+		const [h2 = 0, m2 = 0] = String(hAte || '00:00').split(':').map(n => Number(n) || 0);
+		return Math.max(0, (h2 + m2/60) - (h1 + m1/60));
+	}
+
+	async function fetchExtrasUsuarioDiaProjeto(usuarioId, dataBR, projetoId) {
+		try {
+			const resp = await get(`/horas-extras/listar-horas/${usuarioId}?dataInicio=${encodeURIComponent(dataBR)}&dataFim=${encodeURIComponent(dataBR)}`);
+			const lista = Array.isArray(resp?.listaHoras) ? resp.listaHoras : [];
+			const total = lista.reduce((s, h) => {
+				const projId = h?.codigoProjeto ?? h?.projeto?.id ?? h?.projetoId ?? h?.idProjeto;
+				if (Number(projId) !== Number(projetoId)) return s;
+				return s + timeRangeToHours(h?.horasDe, h?.horasAte);
+			}, 0);
+			return Number(total.toFixed(2));
+		} catch {
+			return 0;
+		}
+	}
+
+	async function collectSeries(projetoId, usuarioIdOrAll) {
+		const labels = [];
+		const serieExtras = new Array(lastDay).fill(0);
+		const serieNormais = new Array(lastDay).fill(0);
+
+		// Quem serão os usuários considerados?
+		const proj = projetosGerente.find(p => Number(p.id) === Number(projetoId));
+		const usuarios = (usuarioIdOrAll === 'all')
+			? (proj?.usuarios || [])
+			: (proj?.usuarios || []).filter(u => Number(u.id) === Number(usuarioIdOrAll));
+
+		const userIds = usuarios.map(u => u.id).filter(Boolean);
+
+		const tasks = [];
+		for (let d = 1; d <= lastDay; d++) {
+			labels.push(String(d).padStart(2, '0'));
+			const dataBR = toBR(new Date(ano, mesIdx, d));
+
+			tasks.push((async (idx) => {
+				let somaApontado = 0;
+				let somaExtras = 0;
+				await Promise.all(userIds.map(async uid => {
+					somaApontado += await fetchApontadoUsuarioDiaProjeto(uid, dataBR, projetoId);
+					somaExtras += await fetchExtrasUsuarioDiaProjeto(uid, dataBR, projetoId);
+				}));
+				const normais = Math.max(0, somaApontado - somaExtras);
+				serieExtras[idx] = Number(somaExtras.toFixed(2));
+				serieNormais[idx] = Number(normais.toFixed(2));
+			})(d - 1));
+		}
+
+		await Promise.all(tasks);
+		return { labels, serieExtras, serieNormais };
+	}
+
+	// Renderiza gráfico com dados fornecidos
+	let chart = new window.Chart(ctx, {
+		type: 'bar',
+		data: {
+			labels: [],
+			datasets: [
+				{
+					label: 'Horas Normais (h)',
+					data: [],
+					backgroundColor: '#16a34a',
+					maxBarThickness: 24,
+					borderRadius: 4,
+					stack: 'total'
+				},
+				{
+					label: 'Horas Extras (h)',
+					data: [],
+					backgroundColor: '#ef4444',
+					maxBarThickness: 24,
+					borderRadius: 4,
+					stack: 'total'
+				}
+			]
+		},
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				legend: { position: 'bottom' },
+				title: {
+					display: true,
+					text: `Horas por Dia – ${monthLabelPT(mesIdx)}/${ano}`,
+					color: '#0f172a',
+					font: { size: 14, weight: '600' }
+				},
+				tooltip: {
+					mode: 'index',
+					intersect: false,
+					callbacks: {
+						label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h`
+					}
+				}
+			},
+			scales: {
+				x: { grid: { display: false }, stacked: true },
+				y: { beginAtZero: true, stacked: true, title: { display: true, text: 'Horas (h)' }, grid: { color: 'rgba(0,0,0,0.05)' } }
+			}
+		}
+	});
+
+	// Render inicial com o primeiro projeto e 'Todos'
+	const initialProj = projetosGerente[0];
+	projetoSelect.value = String(initialProj.id);
+	populateUserSelectForProject(initialProj);
+	userSelect.value = 'all';
+
+	async function updateChart() {
+		const projetoId = projetoSelect.value;
+		const usuarioIdOrAll = userSelect.value || 'all';
+		const { labels, serieExtras, serieNormais } = await collectSeries(projetoId, usuarioIdOrAll);
+		chart.data.labels = labels;
+		chart.data.datasets[0].data = serieNormais;
+		chart.data.datasets[1].data = serieExtras;
+		chart.options.plugins.title.text = `Horas por Dia – ${monthLabelPT(mesIdx)}/${ano}`;
+		chart.update();
+		console.log('Barras Empilhadas – update', { projetoId, usuarioIdOrAll, labels, serieNormais, serieExtras });
+	}
+
+	await updateChart();
+
+	projetoSelect.addEventListener('change', async () => {
+		const proj = projetosGerente.find(p => String(p.id) === projetoSelect.value);
+		populateUserSelectForProject(proj);
+		userSelect.value = 'all';
+		await updateChart();
+	});
+	userSelect.addEventListener('change', updateChart);
+
+	// Altura do container já definida no HTML; garante export
+	attachExport(canvas, cardEl);
 }

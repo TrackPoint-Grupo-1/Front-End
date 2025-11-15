@@ -71,6 +71,8 @@
                     </div>
                 </div>
 
+                
+
                 <!-- Espaçamento entre seções -->
                 <div style="margin-bottom: 2rem;"></div>
 
@@ -192,6 +194,35 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Espaçamento entre seções -->
+                <div style="margin-bottom: 2rem;"></div>
+
+                <!-- Barras Empilhadas: Normais vs Extras (Mês atual) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Horas Trabalhadas (Normais) vs Extras no Mês</h3>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary btn-sm">
+                                <i class="fas fa-download"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container" id="chart_barras_empilhadas_mes" style="height: 360px;">
+                            <div class="chart-placeholder">
+                                <i class="fas fa-layer-group"></i>
+                                <p>Gráfico de Barras Empilhadas</p>
+                                <span class="text-sm text-gray-500">Dias do mês com horas normais (verde) e extras (vermelho)</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-4">
+                            <strong>Legenda:</strong> Cada barra representa um dia do mês atual, com a parte verde indicando as horas apontadas como trabalho normal e a parte vermelha indicando as horas extras do dia.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 2rem;"></div>
 
                 <!-- Comparação Anual -->
                 <div class="card">
