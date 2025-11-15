@@ -41,11 +41,22 @@
 
   <div class="container-relatorios">
     <div class="search-section">
-      <div class="search-container">
-        <label for="date-input">Busque uma data</label>
-        <div class="search-input-group">
-          <input type="text" id="date-input" placeholder="DD/MM/AAAA" class="date-input">
-          <button class="search-btn" id="search-btn">Buscar</button>
+      <div class="search-row">
+        <div class="search-container">
+          <label for="date-input">Busque uma data</label>
+          <div class="search-input-group">
+            <input type="date" id="date-input" class="date-input">
+            <button class="search-btn" id="search-btn">Buscar</button>
+          </div>
+        </div>
+
+        <div class="search-container export-container">
+          <label for="start-date">Exportar pontos (entre datas)</label>
+          <div class="search-input-group" style="gap: 8px; flex-wrap: wrap;">
+            <input type="date" id="start-date" class="date-input" style="max-width: 160px;">
+            <input type="date" id="end-date" class="date-input" style="max-width: 160px;">
+            <button class="search-btn" id="export-btn">Exportar</button>
+          </div>
         </div>
       </div>
 
