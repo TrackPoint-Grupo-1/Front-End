@@ -91,21 +91,82 @@ async function initDevChart(){
   const iniAnt = ddmmyyyy(startOfMonth(refAnt));
   const fimAnt = ddmmyyyy(endOfMonth(refAnt));
 
+  // Helpers de projeto
+  const getProjetoId = (a) => a?.projeto?.id ?? a?.projetoId ?? a?.idProjeto ?? a?.codigoProjeto ?? null;
+  async function fetchProjetosDoGerente(idGerente){
+    try{
+      const projetos = await get(`/projetos/funcionario/${idGerente}?status=ANDAMENTO`, { 'User-Agent':'trackpoint-frontend' });
+      if (!Array.isArray(projetos)) return [];
+      // mantém somente projetos onde o usuário é gerente, quando possível identificar
+      const idNum = Number(idGerente);
+      const filtrados = projetos.filter(p => Array.isArray(p.gerentes) ? p.gerentes.some(g => Number(g.id) === idNum) : true);
+      return filtrados;
+    } catch { return []; }
+  }
+  function ensureProjetoSelect(cardEl){
+    const actions = cardEl.querySelector('.card-actions');
+    if (!actions) return null;
+    let sel = actions.querySelector('#devProjetoSelect');
+    if (!sel){
+      sel = document.createElement('select');
+      sel.id = 'devProjetoSelect';
+      sel.className = 'btn btn-secondary btn-sm';
+      sel.style.minWidth = '220px';
+      sel.style.marginRight = '0.5rem';
+      actions.insertBefore(sel, actions.firstChild);
+    } else {
+      sel.innerHTML = '';
+    }
+    return sel;
+  }
+
   container.innerHTML = '<div class="chart-placeholder"><i class="fas fa-spinner fa-pulse"></i><p>Carregando...</p></div>';
 
   try{
-    const apAtual = await fetchApont(gerenteId, iniAtual, fimAtual);
-    let apAnt = [];
-    try { apAnt = await fetchApont(gerenteId, iniAnt, fimAnt); } catch(errPrev){ console.warn('Mês anterior sem dados ou erro (desenvolvimento):', errPrev); apAnt = []; }
-    console.log('[Desenvolvimento] qtd atual:', apAtual.length, 'qtd anterior:', apAnt.length);
-    const pctAtual = calcPctDev(apAtual);
-    const pctAnt = calcPctDev(apAnt);
-    // Diagnóstico quando total>0 mas pct==0
-    const totalAtual = apAtual.reduce((acc,a)=> acc + (Number(a.horasFeita ?? a.horas ?? 0) || 0),0);
-    if (totalAtual>0 && pctAtual===0){
-      console.debug('[Desenvolvimento] Verificação mês atual - primeiras ações normalizadas:', apAtual.slice(0,5).map(a=>({acao:a.acao, norm:normalize(a.acao), horas:a.horasFeita??a.horas})));
+    // Carrega opções de projeto e desenha seletor
+    const projetos = await fetchProjetosDoGerente(gerenteId);
+    const select = ensureProjetoSelect(card);
+    let currentProjeto = 'ALL';
+    if (select){
+      const optAll = document.createElement('option');
+      optAll.value = 'ALL';
+      optAll.textContent = 'Todos os Projetos';
+      select.appendChild(optAll);
+      (projetos||[]).forEach(p=>{
+        const opt = document.createElement('option');
+        opt.value = String(p.id);
+        opt.textContent = p.nome || `Projeto ${p.id}`;
+        select.appendChild(opt);
+      });
+      select.value = 'ALL';
     }
-    build(container, pctAtual, pctAnt);
+
+    async function render(projId){
+      const apAtual = await fetchApont(gerenteId, iniAtual, fimAtual);
+      let apAnt = [];
+      try { apAnt = await fetchApont(gerenteId, iniAnt, fimAnt); } catch(errPrev){ console.warn('Mês anterior sem dados ou erro (desenvolvimento):', errPrev); apAnt = []; }
+
+      let atualFiltrado = apAtual;
+      let antFiltrado = apAnt;
+      if (projId && projId !== 'ALL'){
+        const pid = Number(projId);
+        atualFiltrado = apAtual.filter(a => Number(getProjetoId(a)) === pid);
+        antFiltrado = apAnt.filter(a => Number(getProjetoId(a)) === pid);
+      }
+
+      const pctAtual = calcPctDev(atualFiltrado);
+      const pctAnt = calcPctDev(antFiltrado);
+      build(container, pctAtual, pctAnt);
+    }
+
+    await render(currentProjeto);
+    if (select){
+      select.addEventListener('change', async (e)=>{
+        currentProjeto = e.target.value;
+        container.innerHTML = '<div class="chart-placeholder"><i class="fas fa-spinner fa-pulse"></i><p>Carregando...</p></div>';
+        await render(currentProjeto);
+      });
+    }
   }catch(e){
     console.error('Erro gráfico desenvolvimento:', e);
     build(container, 0, 0);
