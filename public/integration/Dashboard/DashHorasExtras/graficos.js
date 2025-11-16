@@ -1241,6 +1241,25 @@ async function renderBarrasEmpilhadasMes(container) {
 		return Math.max(0, (h2 + m2/60) - (h1 + m1/60));
 	}
 
+	// Determina o limite diário de horas normais para um usuário.
+	// Tenta diversas propriedades comuns; fallback para 8 horas/dia.
+	function getDailyNormalLimitForUser(userObj) {
+		if (!userObj || typeof userObj !== 'object') return 8;
+		const candidates = [
+			userObj.cargaHorariaDiaria,
+			userObj.jornadaDiariaHoras,
+			userObj.jornadaDiaria,
+			userObj.horasPorDia,
+			// Caso exista cargaHorariaSemanal, assume 5 dias úteis
+			(userObj.cargaHorariaSemanal != null ? Number(userObj.cargaHorariaSemanal) / 5 : undefined)
+		];
+		for (const v of candidates) {
+			const n = Number(v);
+			if (!isNaN(n) && n > 0) return n;
+		}
+		return 8;
+	}
+
 	async function fetchExtrasUsuarioDiaProjeto(usuarioId, dataBR, projetoId) {
 		try {
 			const resp = await get(`/horas-extras/listar-horas/${usuarioId}?dataInicio=${encodeURIComponent(dataBR)}&dataFim=${encodeURIComponent(dataBR)}`);
@@ -1268,6 +1287,9 @@ async function renderBarrasEmpilhadasMes(container) {
 			: (proj?.usuarios || []).filter(u => Number(u.id) === Number(usuarioIdOrAll));
 
 		const userIds = usuarios.map(u => u.id).filter(Boolean);
+		// Map de usuário -> objeto (para obter jornada diária)
+		const userById = new Map();
+		usuarios.forEach(u => { if (u && u.id != null) userById.set(Number(u.id), u); });
 
 		const tasks = [];
 		for (let d = 1; d <= lastDay; d++) {
@@ -1275,15 +1297,25 @@ async function renderBarrasEmpilhadasMes(container) {
 			const dataBR = toBR(new Date(ano, mesIdx, d));
 
 			tasks.push((async (idx) => {
-				let somaApontado = 0;
+				let somaNormais = 0;
 				let somaExtras = 0;
 				await Promise.all(userIds.map(async uid => {
-					somaApontado += await fetchApontadoUsuarioDiaProjeto(uid, dataBR, projetoId);
-					somaExtras += await fetchExtrasUsuarioDiaProjeto(uid, dataBR, projetoId);
+					const apontado = await fetchApontadoUsuarioDiaProjeto(uid, dataBR, projetoId);
+					const extrasRec = await fetchExtrasUsuarioDiaProjeto(uid, dataBR, projetoId);
+					const userObj = userById.get(Number(uid));
+					const limiteDiario = getDailyNormalLimitForUser(userObj);
+					// Inferir extra caso apontado ultrapasse o limite diário
+					const extrasInferidos = Math.max(0, apontado - limiteDiario);
+					// Evita subestimar extras: usa o maior entre o registrado e o inferido
+					let extrasUsuario = Math.max(extrasRec, extrasInferidos);
+					// Extras não podem exceder o total apontado
+					extrasUsuario = Math.min(extrasUsuario, apontado);
+					const normaisUsuario = Math.max(0, apontado - extrasUsuario);
+					somaNormais += normaisUsuario;
+					somaExtras += extrasUsuario;
 				}));
-				const normais = Math.max(0, somaApontado - somaExtras);
 				serieExtras[idx] = Number(somaExtras.toFixed(2));
-				serieNormais[idx] = Number(normais.toFixed(2));
+				serieNormais[idx] = Number(somaNormais.toFixed(2));
 			})(d - 1));
 		}
 
