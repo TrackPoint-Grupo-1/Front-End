@@ -45,6 +45,10 @@ app.get('/manager/horas-projeto', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/manager/horas-projeto.html'));
 });
 
+app.get('/manager/perfil', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', '/manager/perfil.html'));
+});
+
 // Serve a página de relatório de horas
 app.get('/relatorio-horas', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', '/relatorio-horas.html'));

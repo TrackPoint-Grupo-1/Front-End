@@ -33,7 +33,8 @@ class NavigationManager {
         const pageMap = {
             'visao-geral': '/manager/visao-geral',
             'horas-extras': '/manager/horas-extras',
-            'horas-projeto': '/manager/horas-projeto'
+            'horas-projeto': '/manager/horas-projeto',
+            'perfil': '/manager/perfil'
         };
 
         const url = pageMap[page];
