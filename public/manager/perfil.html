@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visão Geral - TrackPoint Manager</title>
+    <title>Perfil - TrackPoint Manager</title>
     <link rel="stylesheet" href="styles/shared.css">
     <link rel="stylesheet" href="styles/perfil.css">
     <link rel="shortcut icon" href="../assets/favicon.png" type="image/x-icon">
@@ -21,6 +21,9 @@
     <script src="components/quick-action.js"></script>
     <script type="module" src="integration/dashboard-data.js"></script>
     <script type="module" src="integration/navigation.js"></script>
+    <script type="module" src="integration/perfil-edit.js"></script>
+    <script type="module" src="integration/perfil-dados.js"></script>
+    <script type="module" src="integration/perfil-projetos.js"></script>
     <!-- Acessibilidade e preferÊncias -->
     <link rel="stylesheet" href="./styles/preferencias.css">
     <script src="./integration/preferencias.js"></script>
@@ -109,6 +112,63 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Edição de Perfil -->
+    <div id="modal-editar-perfil" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Perfil</h3>
+                <button id="close-modal" class="close-btn" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-editar-perfil">
+                    <div class="form-group">
+                        <label for="campo-nome">Nome</label>
+                        <input type="text" id="campo-nome" name="nome" placeholder="Digite o novo nome">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="campo-email">Email</label>
+                        <input type="email" id="campo-email" name="email" placeholder="Digite o novo email">
+                    </div>
+
+                    <fieldset class="senha-fieldset">
+                        <legend>Alterar Senha (opcional)</legend>
+                        <div class="form-group">
+                            <label for="senha-nova">Nova Senha</label>
+                            <input type="password" id="senha-nova" name="senhaNova" placeholder="Informe a nova senha">
+                        </div>
+                        <div class="form-group">
+                            <label for="senha-nova-confirmar">Confirmar Nova Senha</label>
+                            <input type="password" id="senha-nova-confirmar" name="senhaNovaConfirmar" placeholder="Confirme a nova senha">
+                        </div>
+                    </fieldset>
+
+                    <div class="modal-actions">
+                        <button type="button" id="cancelar-edicao" class="btn-outlined">Cancelar</button>
+                        <button type="submit" class="btn-primary">Salvar</button>
+                    </div>
+                </form>
+                <p id="editar-feedback" class="feedback" role="alert" aria-live="polite"></p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal.hidden { display: none; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { width: 100%; max-width: 520px; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; }
+        .modal-body { padding: 20px; }
+        .close-btn { background: transparent; border: none; font-size: 22px; cursor: pointer; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+        .form-group input { padding: 10px 12px; border: 1px solid #dcdcdc; border-radius: 8px; font-size: 14px; }
+        .senha-fieldset { border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-top: 8px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+        .btn-primary { background: #2b6cb0; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+        .btn-outlined { background: transparent; border: 1px solid #aaa; color: #333; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+        .feedback { margin-top: 10px; font-size: 13px; color: #c53030; }
+    </style>
 </body>
 
 </html>
