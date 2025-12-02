@@ -12,7 +12,8 @@ class Sidebar extends HTMLElement {
                 
                 .sidebar {
                     width: 280px;
-                    height: 100vh;
+                    min-height: 100vh;
+                    height: auto;
                     background: #ffffff;
                     border-right: 1px solid #e2e8f0;
                     position: fixed;
@@ -217,7 +218,7 @@ class Sidebar extends HTMLElement {
                     <h3 class="nav-title">ÁREA DO USUÁRIO</h3>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="/manager/perfil" class="nav-link" data-page="perfil">
                                 <i class="nav-icon fas fa-user"></i>
                                 Perfil
                             </a>

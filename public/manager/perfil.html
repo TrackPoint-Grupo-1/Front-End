@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visão Geral - TrackPoint Manager</title>
+    <link rel="stylesheet" href="styles/shared.css">
+    <link rel="stylesheet" href="styles/perfil.css">
+    <link rel="shortcut icon" href="../assets/favicon.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script type="module" src="../integration/Dashboard/kpiVisaoGeral.js"></script>
+    <script type="module" src="../integration/Dashboard/solicitacoesHorasExtras.js"></script>
+    <script type="module" src="../integration/Dashboard/solicitacaoCorrecaoManual.js"></script>
+    <script src="components/sidebar.js"></script>
+    <script src="components/header.js"></script>
+    <script src="components/metric-card.js"></script>
+    <script src="components/chart-card.js"></script>
+    <script src="components/employee-card.js"></script>
+    <script src="components/quick-action.js"></script>
+    <script type="module" src="integration/dashboard-data.js"></script>
+    <script type="module" src="integration/navigation.js"></script>
+    <!-- Acessibilidade e preferÊncias -->
+    <link rel="stylesheet" href="./styles/preferencias.css">
+    <script src="./integration/preferencias.js"></script>
+
+</head>
+
+<body>
+
+    <!-- API de acessibilidade Vlibras -->
+    <script src="../integration/acessibilidade.js"></script>
+
+    <div class="dashboard-layout">
+        <app-sidebar></app-sidebar>
+
+        <div class="main-content">
+            <app-header></app-header>
+
+            <div class="content-area">
+                <div class="card-perfil">
+
+                    <!-- Botão Editar -->
+                    <button class="btn-edit">
+                        <i class="fa-solid fa-pencil"></i> EDITAR
+                    </button>
+
+                    <!-- Área da foto e informações principais -->
+                    <div class="foto-area">
+                        <img src="../assets/user.jpg" alt="Foto de perfil" class="foto-perfil">
+
+                        <h2 class="usuario-nome">Simone Lopes</h2>
+                        <p class="usuario-cargo">Gerente - TI</p>
+
+                    </div>
+
+                    <!-- Informações secundárias -->
+                    <div class="perfil-dados">
+
+                        <div class="info-lista">
+                            <p><strong>Email:</strong> simone@gmail.com</p>
+                            <p><strong>Área:</strong> TI</p>
+                            <p><strong>Cargo:</strong> GERENTE</p>
+                            <p><strong>Jornada:</strong> 8 horas</p>
+                            <p><strong>Tempo de Casa:</strong> 1.4 anos</p> <!-- calcular conforme a data "criadoem" -->
+                        </div>
+
+                        <div class="projetos">
+                            <h3>Projetos Ativos</h3>
+                            <div class="projeto-tag">Sistema de Jornada</div>
+                            <div class="projeto-tag">Dashboard de Relatórios</div>
+                            <div class="projeto-tag">Workiva Integrações</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card de Preferências e Acessibilidade -->
+                <div class="card-preferencias">
+
+                    <h2>Preferências e Acessibilidade</h2>
+
+                    <!-- Tema -->
+                    <div class="pref-item">
+                        <label for="toggle-dark">Modo Dark</label>
+                        <label class="switch">
+                            <input type="checkbox" id="toggle-dark">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Daltonismo -->
+                    <div class="pref-item">
+                        <label>Filtros de Daltonismo</label>
+                        <select id="select-daltonismo">
+                            <option value="none">Nenhum</option>
+                            <option value="protanopia">Protanopia</option>
+                            <option value="deuteranopia">Deuteranopia</option>
+                            <option value="tritanopia">Tritanopia</option>
+                        </select>
+                    </div>
+
+                    <!-- RESET -->
+                    <div class="pref-item">
+                        <label for="toggle-reset">Resetar Acessibilidade</label>
+                        <button class="btn-reset-preferencias" id="reset-accessibility">RESETAR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

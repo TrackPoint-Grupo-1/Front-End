@@ -1,0 +1,245 @@
+/* --- SEU CÓDIGO ORIGINAL (NÃO ALTERADO) --- */
+
+.content-area {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.card-perfil {
+    width: 85%;
+    height: fit-content;   /* altura exata do conteúdo */
+    max-height: none;      /* permite crescer livremente */
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid white; 
+    padding: 30px;
+    display: flex;
+    gap: 60px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: relative;
+    align-items: flex-start;
+}
+
+
+/* Botão Editar */
+.btn-edit {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: .2s ease;
+}
+
+.btn-edit:hover {
+    background: #065e56;
+}
+
+/* FOTO + NOME + CARGO */
+.foto-area {
+    text-align: center;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.foto-perfil {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #eee;
+}
+
+.usuario-nome {
+    font-size: 24px;
+    margin-top: 15px;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.usuario-cargo {
+    color: #777;
+    font-size: 15px;
+}
+
+/* Painel da direita */
+.perfil-dados {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+}
+
+/* Informações */
+.info-lista p {
+    margin: 5px 0;
+    font-size: 15px;
+}
+
+.info-lista strong {
+    color: #222;
+}
+
+/* Projetos */
+.projetos {
+    margin-top: 25px;
+}
+
+.projeto-tag {
+    display: inline-block;
+    padding: 6px 15px;
+    background: #aae2dd;
+    color: #0c746b;
+    border-radius: 12px;
+    margin: 5px 5px 0 0;
+    font-size: 14px;
+}
+
+.card-preferencias {
+    background: white;
+    width: 85%;
+    border-radius: 18px;
+    border: 1px solid white; 
+    padding: 30px;
+    margin-top: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-preferencias h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+}
+
+.pref-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+/* Switch bonito */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 24px;
+}
+
+.switch input { display: none; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: #ccc;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background: #0d9488;
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+
+/* Select */
+#select-daltonismo {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Modo Dark */
+body.dark-mode {
+    background: #141414 !important;
+}
+
+body.dark-mode .card-preferencias,
+body.dark-mode .card-perfil,
+body.dark-mode .content-area {
+    background: #1e1e1e !important;
+    color: white !important;
+}
+
+/* Filtros de Daltonismo */
+body.dalt-protanopia {
+    filter: url("#protanopia");
+}
+
+body.dalt-deuteranopia {
+    filter: url("#deuteranopia");
+}
+
+body.dalt-tritanopia {
+    filter: url("#tritanopia");
+}
+
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .card-perfil {
+        gap: 30px;
+        height: auto;
+        /* evita quebrar layout quando reduzir */
+    }
+}
+
+/* Celulares */
+@media (max-width: 768px) {
+    .card-perfil {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: auto;
+        gap: 20px;
+    }
+
+    .btn-edit {
+        position: static;
+        align-self: flex-end;
+        margin-bottom: 10px;
+    }
+
+    .perfil-dados {
+        align-items: center;
+    }
+}
+
+/* Telas muito pequenas */
+@media (max-width: 480px) {
+    .foto-perfil {
+        width: 120px;
+        height: 120px;
+    }
+}
