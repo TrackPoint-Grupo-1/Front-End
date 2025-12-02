@@ -1,0 +1,165 @@
+/* --- SEU CÓDIGO ORIGINAL (NÃO ALTERADO) --- */
+
+.content-area {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.card-perfil {
+    width: 85%;
+    height: fit-content;   /* altura exata do conteúdo */
+    max-height: none;      /* permite crescer livremente */
+    background: #fff;
+    border-radius: 18px;
+    padding: 30px;
+    display: flex;
+    gap: 60px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: relative;
+    align-items: flex-start;
+}
+
+
+/* Botão Editar */
+.btn-edit {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: .2s ease;
+}
+
+.btn-edit:hover {
+    background: #065e56;
+}
+
+/* FOTO + NOME + CARGO */
+.foto-area {
+    text-align: center;
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.foto-perfil {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #eee;
+}
+
+.usuario-nome {
+    font-size: 24px;
+    margin-top: 15px;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.usuario-cargo {
+    color: #777;
+    font-size: 15px;
+}
+
+/* Stats */
+.stats {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.stat-item {
+    margin-bottom: 10px;
+}
+
+.stat-line {
+    font-size: 16px;
+    color: #222;
+}
+
+/* Painel da direita */
+.perfil-dados {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: start;
+}
+
+/* Informações */
+.info-lista p {
+    margin: 5px 0;
+    font-size: 15px;
+}
+
+.info-lista strong {
+    color: #222;
+}
+
+/* Projetos */
+.projetos {
+    margin-top: 25px;
+}
+
+.projeto-tag {
+    display: inline-block;
+    padding: 6px 15px;
+    background: #aae2dd;
+    color: #0c746b;
+    border-radius: 12px;
+    margin: 5px 5px 0 0;
+    font-size: 14px;
+}
+
+
+
+/* --- APENAS A PARTE RESPONSIVA (NOVO) --- */
+
+/* Tablets */
+@media (max-width: 1024px) {
+    .card-perfil {
+        gap: 30px;
+        height: auto;
+        /* evita quebrar layout quando reduzir */
+    }
+}
+
+/* Celulares */
+@media (max-width: 768px) {
+    .card-perfil {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: auto;
+        gap: 20px;
+    }
+
+    .btn-edit {
+        position: static;
+        align-self: flex-end;
+        margin-bottom: 10px;
+    }
+
+    .perfil-dados {
+        align-items: center;
+    }
+}
+
+/* Telas muito pequenas */
+@media (max-width: 480px) {
+    .foto-perfil {
+        width: 120px;
+        height: 120px;
+    }
+}

@@ -167,7 +167,7 @@ class AppHeader extends HTMLElement {
                         <span class="breadcrumb-separator">/</span>
                         <span>Dashboard</span>
                         <span class="breadcrumb-separator">/</span>
-                        <span id="current-page">Visão Geral</span>
+                        <span id="current-page">Perfil</span>
                     </div>
                     <h1 class="page-title">Dashboard</h1>
                 </div>
