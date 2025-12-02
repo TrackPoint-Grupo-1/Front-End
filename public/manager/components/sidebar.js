@@ -12,7 +12,8 @@ class Sidebar extends HTMLElement {
                 
                 .sidebar {
                     width: 280px;
-                    height: 100vh;
+                    min-height: 100vh;
+                    height: auto;
                     background: #ffffff;
                     border-right: 1px solid #e2e8f0;
                     position: fixed;

@@ -1,0 +1,66 @@
+/* Theme variables (defaults) */
+:root {
+    --pref-bg: #ffffff;
+    --pref-bg-card: #ffffff;
+    --pref-text: #111827;
+    --pref-accent: #005267;
+    --pref-transition: 200ms ease;
+}
+
+/* dark theme variables (swapped values only) */
+[data-pref-theme="dark"] {
+    --pref-bg: #0f0f0f;
+    --pref-bg-card: #141414;
+    --pref-text: #e6eef0;
+    --pref-accent: #005267;
+}
+
+/* Smooth transitions for theme changes (minimal) */
+*,
+*::before,
+*::after {
+    transition: color var(--pref-transition), background-color var(--pref-transition), border-color var(--pref-transition), filter var(--pref-transition);
+}
+
+/* Daltonism filters (we'll set these classes on <html> or <body>) */
+html.filtro-protanopia,
+body.filtro-protanopia {
+    filter: grayscale(0.52) sepia(0.30) !important;
+}
+
+html.filtro-deuteranopia,
+body.filtro-deuteranopia {
+    filter: grayscale(0.52) sepia(0.14) !important;
+}
+
+html.filtro-tritanopia,
+body.filtro-tritanopia {
+    filter: hue-rotate(180deg) saturate(1.12) !important;
+}
+
+
+/* Minimal usage: let existing components keep look — but ensure text color inherits */
+body,
+body * {
+    color: inherit;
+}
+
+/* A tiny helper for reset button style (non-invasive) */
+.btn-reset-preferencias {
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    transition: .2s ease;
+}
+
+.projeto-tag {
+    background: #0d9488;
+    color: #ffffff;
+}
