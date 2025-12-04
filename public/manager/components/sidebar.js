@@ -252,10 +252,16 @@ class Sidebar extends HTMLElement {
         const helpButton = this.shadowRoot.querySelector('.help-button');
         if (helpButton) {
             helpButton.addEventListener('click', () => {
-                // Implementar ação de ajuda/documentação
-                console.log('Abrindo documentação...');
-                // Aqui você pode abrir um modal, redirecionar para documentação, etc.
-                alert('Documentação em desenvolvimento!');
+                // Dispara o download do PDF de documentação
+                const pdfPath = '/Documentacao/Book%20do%20Projeto%20v2%20-%20TrackPoint.pdf';
+                const a = document.createElement('a');
+                a.href = pdfPath;
+                a.download = 'Book do Projeto v2 - TrackPoint.pdf';
+                a.rel = 'noopener';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             });
         }
     }

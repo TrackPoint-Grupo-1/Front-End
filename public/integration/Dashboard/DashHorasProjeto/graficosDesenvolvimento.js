@@ -92,7 +92,14 @@ async function initDevChart(){
   const fimAnt = ddmmyyyy(endOfMonth(refAnt));
 
   // Helpers de projeto
-  const getProjetoId = (a) => a?.projeto?.id ?? a?.projetoId ?? a?.idProjeto ?? a?.codigoProjeto ?? null;
+  // Extrai o ID do projeto de diferentes formatos e normaliza
+  const getProjetoId = (a) => {
+    const raw = a?.projeto?.id ?? a?.projetoId ?? a?.idProjeto ?? a?.codigoProjeto ?? a?.projeto ?? null;
+    // Se vier objeto projeto, já foi tratado acima; se vier string/number, normaliza
+    const num = Number(raw);
+    if (!Number.isNaN(num) && num > 0) return num;
+    return raw == null ? null : String(raw).trim();
+  };
   async function fetchProjetosDoGerente(idGerente){
     try{
       const projetos = await get(`/projetos/funcionario/${idGerente}?status=ANDAMENTO`, { 'User-Agent':'trackpoint-frontend' });
@@ -149,10 +156,25 @@ async function initDevChart(){
       let atualFiltrado = apAtual;
       let antFiltrado = apAnt;
       if (projId && projId !== 'ALL'){
-        const pid = Number(projId);
-        atualFiltrado = apAtual.filter(a => Number(getProjetoId(a)) === pid);
-        antFiltrado = apAnt.filter(a => Number(getProjetoId(a)) === pid);
+        const pidNum = Number(projId);
+        const pidStr = String(projId).trim();
+        atualFiltrado = apAtual.filter(a => {
+          const id = getProjetoId(a);
+          return (!Number.isNaN(pidNum) && Number(id) === pidNum) || String(id).trim() === pidStr;
+        });
+        antFiltrado = apAnt.filter(a => {
+          const id = getProjetoId(a);
+          return (!Number.isNaN(pidNum) && Number(id) === pidNum) || String(id).trim() === pidStr;
+        });
       }
+
+      console.debug('Desenvolvimento – filtro projeto:', {
+        projetoSelecionado: projId,
+        totalAtual: apAtual.length,
+        totalAnterior: apAnt.length,
+        filtradoAtual: atualFiltrado.length,
+        filtradoAnterior: antFiltrado.length
+      });
 
       const pctAtual = calcPctDev(atualFiltrado);
       const pctAnt = calcPctDev(antFiltrado);

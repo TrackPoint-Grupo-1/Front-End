@@ -1,7 +1,30 @@
 import { get, post } from "./connection.js";
 
 document.addEventListener('DOMContentLoaded', function () {
-	const userId = 1; // ajustar conforme contexto do usuário autenticado
+	// Obtém o ID do usuário autenticado a partir do localStorage
+	const userId = (() => {
+		try {
+			const raw = localStorage.getItem('usuarioLogado');
+			if (!raw) return undefined;
+			const obj = JSON.parse(raw);
+			return obj?.id;
+		} catch (e) {
+			return undefined;
+		}
+	})();
+
+	if (!userId) {
+		console.warn('Usuário não encontrado no localStorage (usuarioLogado.id).');
+		// Opcional: exibir mensagem amigável e bloquear ações até login
+		const footerEl = document.getElementById('footerMessage');
+		const submitBtn = document.getElementById('submitButton');
+		if (footerEl) footerEl.innerHTML = 'Faça login para solicitar ajustes.';
+		if (submitBtn) {
+			submitBtn.disabled = true;
+			submitBtn.setAttribute('aria-disabled', 'true');
+		}
+		return; // interrompe execução até que haja usuário logado
+	}
 	const maxAllowed = 5;
 	const footerEl = document.getElementById('footerMessage');
 	const submitBtn = document.getElementById('submitButton');

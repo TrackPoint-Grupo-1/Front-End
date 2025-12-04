@@ -26,7 +26,20 @@ import { get, patch } from "../connection.js";
 
 	const getGestorId = () => {
 		const fromBody = document.body?.dataset?.gestorId;
-		const fromStore = typeof localStorage !== "undefined" ? localStorage.getItem("gestorId") : null;
+		let fromStore = null;
+		if (typeof localStorage !== "undefined") {
+			// Tenta obter do objeto usuarioLogado (preferencial)
+			try {
+				const raw = localStorage.getItem("usuarioLogado");
+				if (raw) {
+					const obj = JSON.parse(raw);
+					// Alguns ambientes podem guardar id do gestor ou o próprio id do usuário
+					fromStore = obj?.gestorId || obj?.id || null;
+				}
+			} catch {}
+			// Fallback para chave simples 'gestorId'
+			if (!fromStore) fromStore = localStorage.getItem("gestorId");
+		}
 		return fromBody || fromStore || "2";
 	};
 
@@ -197,9 +210,15 @@ import { get, patch } from "../connection.js";
 		const load = async () => {
 			setTbodyMessage(tbody, "Carregando...", tableContainer, emptyState);
 			try {
-				const data = await get(`/solicitacoes/gestor/${gestorId}`);
-				// Se vier objeto com "mensagem" do backend, considerar como vazio.
-				if (!Array.isArray(data) || data.length === 0 || (data && data.mensagem)) {
+				const resp = await get(`/solicitacoes/gestor/${gestorId}`);
+				// Normaliza diferentes formatos de resposta
+				let list = [];
+				if (Array.isArray(resp)) list = resp;
+				else if (Array.isArray(resp?.items)) list = resp.items;
+				else if (Array.isArray(resp?.solicitacoes)) list = resp.solicitacoes;
+				else if (Array.isArray(resp?.dados)) list = resp.dados;
+
+				if (!Array.isArray(list) || list.length === 0) {
 					tbody.innerHTML = "";
 					if (emptyState) {
 						showEmpty(tableContainer, emptyState);
@@ -209,7 +228,7 @@ import { get, patch } from "../connection.js";
 					return;
 				}
 				showTable(tableContainer, emptyState);
-				await renderRows(tbody, data);
+				await renderRows(tbody, list);
 			} catch (e) {
 				// Se o backend retornou "nenhuma solicitação..." como erro/404/204, mostrar estado vazio
 				if (isNoDataError(e)) {
