@@ -382,6 +382,124 @@ function addHoursEntry() {
     `;
     tableBody.appendChild(row);
     addedRows++;
+
+    ensureSaveHoursButton();
+}
+
+// Cria/exibe o botão de salvar para marcações manuais e registra o handler
+function ensureSaveHoursButton() {
+    const container = document.getElementById('hours-report');
+    if (!container) return;
+
+    let saveBtn = container.querySelector('#save-hours-btn');
+    if (!saveBtn) {
+        saveBtn = document.createElement('button');
+        saveBtn.id = 'save-hours-btn';
+        saveBtn.textContent = 'Salvar Pontos Manuais';
+        saveBtn.style.marginTop = '12px';
+        saveBtn.style.background = '#008781';
+        saveBtn.style.color = '#fff';
+        saveBtn.style.border = 'none';
+        saveBtn.style.padding = '8px 12px';
+        saveBtn.style.borderRadius = '4px';
+        saveBtn.style.cursor = 'pointer';
+
+        // por padrão posiciona abaixo da tabela de horas
+        const tableEl = container.querySelector('table');
+        if (tableEl && tableEl.parentElement) {
+            tableEl.parentElement.appendChild(saveBtn);
+        } else {
+            container.appendChild(saveBtn);
+        }
+
+        saveBtn.addEventListener('click', saveManualHours);
+    }
+
+    // mostra se houver pelo menos uma linha manual em edição
+    const hasManualInputs = !!document.querySelector('#hours-table-body .hora-input');
+    saveBtn.style.display = hasManualInputs ? 'inline-flex' : 'none';
+}
+
+async function saveManualHours() {
+    try {
+        if (!usuarioLogado || !usuarioLogado.id) {
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = '/login';
+            return;
+        }
+
+        if (!selectedDate) {
+            alert('Selecione uma data para salvar.');
+            return;
+        }
+
+        const rows = Array.from(document.querySelectorAll('#hours-table-body tr'));
+        const manualRows = rows.filter(r => r.querySelector('.hora-input'));
+        if (manualRows.length === 0) {
+            alert('Não há pontos manuais para salvar.');
+            return;
+        }
+
+        const [dia, mes, ano] = selectedDate.split('/');
+        const dataISO = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+
+        // valida e prepara payloads
+        const payloads = [];
+        for (const r of manualRows) {
+            const tipo = r.children[1]?.textContent?.trim() || '';
+            const horaVal = r.querySelector('.hora-input')?.value || '';
+            const justificativa = r.querySelector('.justificativa-select')?.value || '';
+
+            if (!horaVal) {
+                alert(`Informe a hora para ${tipo}.`);
+                return;
+            }
+            if (!justificativa) {
+                alert(`Selecione a justificativa para ${tipo}.`);
+                return;
+            }
+
+            // horaVal formato HH:MM
+            const horario = `${dataISO}T${horaVal}:00`;
+            payloads.push({
+                tipo,
+                horario,
+                observacoes: justificativa,
+                manual: true
+            });
+        }
+
+        // envia em série para manter simplicidade e mensagens claras
+        for (const p of payloads) {
+            // backend pode esperar POST em /pontos com usuarioId no corpo
+            await post(`/pontos`, { ...p, usuarioId: usuarioLogado.id });
+        }
+
+        alert('Pontos manuais salvos com sucesso!');
+
+        // reseta estado e recarrega dados
+        addedRows = 0;
+        await loadHoursData();
+        ensureSaveHoursButton();
+    } catch (error) {
+        console.error('Erro ao salvar pontos manuais:', error);
+        try {
+            // tenta extrair mensagem
+            let mensagem = null;
+            if (typeof error === 'string') {
+                const match = error.match(/{.*}/s);
+                if (match) mensagem = JSON.parse(match[0]).mensagem;
+            } else if (error?.message && error.message.includes('{')) {
+                const match = error.message.match(/{.*}/s);
+                if (match) mensagem = JSON.parse(match[0]).mensagem;
+            } else if (error?.mensagem) {
+                mensagem = error.mensagem;
+            }
+            alert(mensagem || 'Erro ao salvar pontos manuais.');
+        } catch {
+            alert('Erro ao salvar pontos manuais.');
+        }
+    }
 }
 
 // --------------------------------------------
@@ -655,7 +773,7 @@ async function criarPontosTeste() {
         // Cria os pontos via API
         for (const ponto of pontosTeste) {
             try {
-                await post(`/pontos/${usuarioLogado.id}`, ponto);
+                await post(`/pontos`, { ...ponto, usuarioId: usuarioLogado.id });
             } catch (error) {
                 console.warn('Erro ao criar ponto:', ponto.tipo, error);
             }
