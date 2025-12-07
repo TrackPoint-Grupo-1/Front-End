@@ -71,6 +71,7 @@ async function fetchUsuarioById(usuarioId) {
 	return await get(`/usuarios/${usuarioId}`);
 }
 
+// Converte horas decimais para HH:MM:SS corretos (base em segundos)
 function hoursToHHMMSS(hours) {
 	const totalSeconds = Math.max(0, Math.round((Number(hours) || 0) * 3600));
 	const h = Math.floor(totalSeconds / 3600);
@@ -78,6 +79,11 @@ function hoursToHHMMSS(hours) {
 	const s = totalSeconds % 60;
 	const pad = (n) => String(n).padStart(2, '0');
 	return `${h}:${pad(m)}:${pad(s)}`;
+}
+
+// Formata valor do tooltip do gráfico em HH:MM:SS
+function formatTooltipHours(val) {
+	return hoursToHHMMSS(val);
 }
 
 function getInitials(name) {
@@ -326,7 +332,7 @@ async function renderRanking(container) {
 						},
 						tooltip: {
 							callbacks: {
-								label: (ctx) => ` ${ctx.parsed.y.toFixed(2)} h`
+								label: (ctx) => ` ${ctx.label}: ${formatTooltipHours(ctx.parsed.y)}`
 							}
 						}
 					},
@@ -544,7 +550,7 @@ async function renderDistribuicaoPorProjeto(container) {
 									const total = ctx.dataset.data.reduce((s, v) => s + v, 0) || 1;
 									const val = Number(ctx.parsed);
 									const pct = ((val / total) * 100).toFixed(1);
-									return ` ${ctx.label}: ${val.toFixed(2)} h (${pct}%)`;
+									return ` ${ctx.label}: ${formatTooltipHours(val)} (${pct}%)`;
 								}
 							}
 						}
@@ -821,7 +827,7 @@ async function renderDesvioPlanejadoRealizado(container) {
 				plugins: {
 					legend: { position: 'bottom' },
 					title: { display: true, text: `Desvio entre Horas Extras Planejadas vs. Realizadas ${titleSuffix ? '– ' + titleSuffix : ''} (${ano})`, color: '#0f172a', font: { size: 14, weight: '600' } },
-					tooltip: { mode: 'index', intersect: false, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h` } }
+					tooltip: { mode: 'index', intersect: false, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${formatTooltipHours(Number(ctx.parsed.y || 0))}` } }
 				},
 				scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'Horas (h)' } }, x: { grid: { display: false } } }
 			}
@@ -1362,7 +1368,7 @@ async function renderBarrasEmpilhadasMes(container) {
 					mode: 'index',
 					intersect: false,
 					callbacks: {
-						label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toFixed(2)} h`
+						label: (ctx) => ` ${ctx.dataset.label}: ${formatTooltipHours(Number(ctx.parsed.y || 0))}`
 					}
 				}
 			},
